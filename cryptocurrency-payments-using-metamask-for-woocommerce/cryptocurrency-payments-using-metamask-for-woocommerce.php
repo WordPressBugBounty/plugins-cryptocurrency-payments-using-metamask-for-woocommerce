@@ -4,7 +4,7 @@
  * Description:Use MataMask cryptocurrency payment gateway for WooCommerce store and let customers pay with USDT, ETH, BNB or BUSD.
  * Author:Cool Plugins
  * Author URI:https://coolplugins.net/
- * Version: 1.6.1
+ * Version: 1.6.2
  * License: GPL2
  * Text Domain: cpmw
  * Domain Path: /languages
@@ -32,7 +32,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-define( 'CPMW_VERSION', '1.6.1' );
+define( 'CPMW_VERSION', '1.6.2' );
 define( 'CPMW_FILE', __FILE__ );
 define( 'CPMW_PATH', plugin_dir_path( CPMW_FILE ) );
 define( 'CPMW_URL', plugin_dir_url( CPMW_FILE ) );

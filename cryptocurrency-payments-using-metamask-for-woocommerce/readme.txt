@@ -1,11 +1,11 @@
 === Pay With MetaMask For WooCommerce - Cryptocurrency Payment Gateway ===
 Contributors:narinder-singh,satindersingh,coolplugins
 Donate link:https://paypal.me/CoolPlugins/10USD/
-Tags: metamask, WooCommerce, cryptocurrency, cryptocurrency payment gateway, crypto payments
+Tags:crypto, metamask, WooCommerce, cryptocurrency, payment, e-commerce, bitcoin, ethereum, crypto payments,web3
 Requires at least:5.0
-Tested up to:6.6
+Tested up to:6.7.1
 Requires PHP:5.6
-Stable tag:1.6.0
+Stable tag:1.6.1
 License:GPLv2 or later
 License URI:http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -109,59 +109,31 @@ You may now contribute to the plugin on GitHub:
 3. Pay With MetaMask coin selection settings
 4. Pay With MetaMask Payment Gateway Settings
 
-== Frequently Asked Questions ==
-
-= What is the MetaMask Cryptocurrency Payment Gateway plugin? =
-The MetaMask Cryptocurrency Payment Gateway allows WooCommerce store owners to accept cryptocurrency payments, such as USDT, ETH, BNB, and BUSD, directly through the MetaMask extension.
-
-= How does the plugin work? =
-The plugin integrates with WooCommerce to allow customers to pay with various cryptocurrencies. It automatically converts fiat currency to real-time cryptocurrency prices and transfers the payment directly into the store owner's crypto wallet.
-
-= Which cryptocurrencies does the plugin support? =
-The plugin supports Ethereum (ETH), Binance Coin (BNB), USDT, and BUSD. It also supports many custom tokens and can operate across multiple blockchains, including Ethereum and Binance Smart Chain.
-
-= Are there any transaction fees involved? =
-The plugin does not charge any transaction fees, but customers will need to pay the standard network fee in ETH or BNB for processing cryptocurrency transactions.
-
-= Do I need a third-party service to receive payments? =
-No, the plugin allows direct payments into your personal crypto wallet without any intermediaries. There are no third-party gateways or exchanges involved.
-
-= Can I test cryptocurrency payments before going live? =
-Yes, the plugin supports MetaMask test networks, such as GoerliETH, so you can test crypto payments before accepting real transactions.
-
-= Does the plugin support mobile payments? =
-Mobile support is available in the PRO version of the plugin. It allows payments via WalletConnect and QR codes.
-
-= Is it possible to add custom tokens or networks? =
-Yes, the PRO version of the plugin allows you to add custom networks and tokens, giving you flexibility in the types of cryptocurrencies you can accept.
-
-= What are the benefits of using this plugin over other payment gateways? =
-This plugin offers a direct payment solution with no third-party involvement, meaning you receive payments instantly. It supports multiple blockchains and over 100 cryptocurrency wallets, making it flexible and easy to use.
-
-= What happens if I need to refund a customer? =
-The PRO version of the plugin provides an option to refund payments through the MetaMask extension.
-
-= Can I accept payments on different blockchains? =
-Yes, the PRO version of the plugin supports multichain payments, allowing you to accept payments on multiple blockchains like Ethereum, Binance Smart Chain, and Polygon.
-
-= How can I report security bugs? =
-You can report security bugs through the Patchstack Vulnerability Disclosure Program. The Patchstack team help validate, triage and handle any security vulnerabilities. [Report a security vulnerability.](https://patchstack.com/database/vdp/cryptocurrency-payments-using-metamask-for-woocommerce)
-
 == Installation ==
 
 1. Install **Pay With MetaMask For WooCommerce - Cryptocurrency Payment Gateway** from the WordPress.org repository or by uploading plugin-zip unzipped folder to the **/wp-content/plugins** directory.
 2. Activate the plugin through **Plugins >> Installed Plugin** menu in WordPress
 3. After plugin activation, you can find the MetaMask payment gateway settings in the Woocommerce Payments Section.
 
+== Frequently Asked Questions ==
+
+= How can I report security bugs? =
+You can report security bugs through the Patchstack Vulnerability Disclosure Program. The Patchstack team help validate, triage and handle any security vulnerabilities. [Report a security vulnerability.](https://patchstack.com/database/vdp/cryptocurrency-payments-using-metamask-for-woocommerce)
 
 == Changelog ==
 
-<strong>**Version 1.6.0 | 19 Sep 2024**</strong>
+<strong>**Version 1.6.1 | 26 Nov 2024**</strong>
 <pre>
-Added: Set up a cron job to check & complete for pending payments.
-Added: Removed transactions for orders that have been deleted.
+Fixed: Fixed load text domain issue.
+Tested UpTo: Wordpress 6.7.1.
+</pre>  
+
+<strong>**Version 1.6.0 | 18 Sep 2024**</strong>
+<pre>
 Fixed: Different amount display issues on the frontend.
 Fixed: Fixed a problem with transactions on the checkout page if payment was already done.
+Added: Set up a cron job to check & complete for pending payments.
+Added: Removed transactions for orders that have been deleted.
 Improvement: Updated the libraries.
 Improvement: Security improvements.
 </pre>

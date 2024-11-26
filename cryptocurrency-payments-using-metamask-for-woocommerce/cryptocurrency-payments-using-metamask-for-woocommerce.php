@@ -4,7 +4,7 @@
  * Description:Use MataMask cryptocurrency payment gateway for WooCommerce store and let customers pay with USDT, ETH, BNB or BUSD.
  * Author:Cool Plugins
  * Author URI:https://coolplugins.net/
- * Version: 1.6.0
+ * Version: 1.6.1
  * License: GPL2
  * Text Domain: cpmw
  * Domain Path: /languages
@@ -32,7 +32,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-define( 'CPMW_VERSION', '1.6.0' );
+define( 'CPMW_VERSION', '1.6.1' );
 define( 'CPMW_FILE', __FILE__ );
 define( 'CPMW_PATH', plugin_dir_path( CPMW_FILE ) );
 define( 'CPMW_URL', plugin_dir_url( CPMW_FILE ) );
@@ -75,12 +75,13 @@ if ( ! class_exists( 'cpmw_metamask_pay' ) ) {
 			register_deactivation_hook( CPMW_FILE, array( self::$instance, 'deactivate' ) );
 			$this->cpmw_installation_date();
 			add_action( 'plugins_loaded', array( self::$instance, 'cpmw_load_files' ) );
+			add_action( 'init', array( self::$instance, 'cpmw_add_admin_options' ) );
 			add_filter( 'woocommerce_payment_gateways', array( self::$instance, 'cpmw_add_gateway_class' ) );
 			add_action( 'admin_enqueue_scripts', array( self::$instance, 'cmpw_admin_style' ) );
 			add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( self::$instance, 'cpmw_add_widgets_action_links' ) );
 			add_action( 'admin_menu', array( $this, 'cpmw_add_submenu_page' ), 1000 );
 			add_action( 'init', array( $this, 'cpmw_plugin_version_verify' ) );
-			add_action( 'plugins_loaded', array( $this, 'load_text_domain' ) );
+			add_action( 'init', array( $this, 'load_text_domain' ) );
 			// add_action('csf_cpmw_settings_save', array($this, 'cpmw_delete_trainsient'));
 			add_action( 'csf_cpmw_settings_save_before', array( $this, 'cpmw_delete_trainsient' ), 10, 2 );
 			add_action( 'woocommerce_blocks_loaded', array( $this, 'woocommerce_gateway_block_support' ) );
@@ -165,11 +166,14 @@ if ( ! class_exists( 'cpmw_metamask_pay' ) ) {
 				require_once CPMW_PATH . 'admin/feedback/admin-feedback-form.php';
 				require_once CPMW_PATH . 'admin/class.review-notice.php';
 				require_once CPMW_PATH . 'admin/codestar-framework/codestar-framework.php';
-				require_once CPMW_PATH . 'admin/options-settings.php';
 			}
 
 			require_once CPMW_PATH . 'includes/cron/class-cpmw-cron.php';
 
+		}
+
+		public function cpmw_add_admin_options() {
+			require_once CPMW_PATH . 'admin/options-settings.php';
 		}
 
 		public function cpmw_installation_date() {

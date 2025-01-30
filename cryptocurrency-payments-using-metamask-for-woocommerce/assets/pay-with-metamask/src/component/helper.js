@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import * as wagmiChains from "wagmi/chains";
 import Swal from "sweetalert2";
 import { getBalance } from "@wagmi/core";
-import { useAccount, createConfig } from "wagmi";
+import { useAccount, createConfig,http } from "wagmi";
 import ContentLoader from "react-content-loader";
 import { Interface, formatEther } from "ethers";
 import { ConnectKitButton, useModal, getDefaultConfig } from "connectkit";
@@ -521,7 +521,7 @@ export const CustomConnectButton = ({ const_msg }) => {
     </ConnectKitButton.Custom>
   );
 };
-export const createCustomConfig = (decimalchainId,) => {
+export const createCustomConfig = (decimalchainId, rpcUrl) => {
   // Modify the default configuration based on props
   const customConfig = getDefaultConfig({
     //alchemyId: 'vE0lCPXbzgBGR3sU4Y68JHmBNsDYBf7S', // or infuraId
@@ -531,6 +531,9 @@ export const createCustomConfig = (decimalchainId,) => {
     appDescription: window.location.host,
     appUrl: window.location.host,
     appIcon: "https://family.co/logo.png",
+    transports: {
+      [importNetworkById(decimalchainId).id]: http(rpcUrl)
+    }
   });
 
   if (customConfig) {

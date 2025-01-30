@@ -8,7 +8,7 @@ import {createCustomConfig} from '../component/helper';
 import {cancelOrder} from '../component/handelRestApi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 const {const_msg,currency_symbol,token_address,wallet_image,decimalchainId,place_order_btn,connectedWallet,
-	without_discount,network_name,in_crypto,fiatSymbol,currency_logo,totalFiat} = extradataRest;
+	without_discount,network_name,in_crypto,fiatSymbol,currency_logo,totalFiat,rpcUrl} = extradataRest;
 
   const Checkcurrency=({ config })=>{
 	const { isConnected} = useAccount();
@@ -58,7 +58,7 @@ const queryClient = new QueryClient();
 const App = ( props ) => {
 	const [ config, setConfig ] = useState( null );
 	useEffect( () => {
-		setConfig( createCustomConfig(decimalchainId));
+		setConfig( createCustomConfig(decimalchainId,rpcUrl));
 	}, [] );
 
 	return (

@@ -5,7 +5,7 @@ Tags:crypto, metamask, WooCommerce, cryptocurrency, payment, e-commerce, bitcoin
 Requires at least:5.0
 Tested up to:6.7.1
 Requires PHP:5.6
-Stable tag:1.6.2
+Stable tag:1.6.3
 License:GPLv2 or later
 License URI:http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -156,6 +156,12 @@ Yes, the PRO version of the plugin supports multichain payments, allowing you to
 You can report security bugs through the Patchstack Vulnerability Disclosure Program. The Patchstack team help validate, triage and handle any security vulnerabilities. [Report a security vulnerability.](https://patchstack.com/database/vdp/cryptocurrency-payments-using-metamask-for-woocommerce)
 
 == Changelog ==
+
+<strong>**Version 1.6.3 | 30 Jan 2025**</strong>
+<pre>
+Added: Added Network RPC URL option on settings page.
+Improved: update packages.
+</pre>  
 
 <strong>**Version 1.6.2 | 26 Nov 2024**</strong>
 <pre>

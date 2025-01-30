@@ -82,7 +82,50 @@ if (class_exists('CSF')):
                 ),
                 'desc' => '<span >You can add custom network/chain or select multiple networks/chains in pro version.<a href="' . CPMW_BUY_PRO . '" target="_blank"> (Buy Pro) </a></span>',
                 'default' => '0x1',
-
+            ),
+            array(
+                'id' => 'eth_rpc_url',
+                'title' => __('Network RPC URL', 'cpmw'),
+                'type' => 'text',
+                'validate' => '',
+                'dependency' => array(
+                    'Chain_network', '==', '0x1' // Only show for Ethereum mainnet
+                ),
+                'help' => esc_html__('Enter RPC URL for Ethereum mainnet', 'cpmw'),
+                'desc' => 'Add RPC URL for Ethereum mainnet. You can find public endpoints at <a href="https://rpc.info/ethereum" target="_blank">Ethereum mainnet RPC urls</a>.<br>',
+            ),
+            array(
+                'id' => 'bsc_rpc_url', 
+                'title' => __('Network RPC URL', 'cpmw'),
+                'type' => 'text',
+                'validate' => '',
+                'dependency' => array(
+                    'Chain_network', '==', '0x38' // Only show for BSC mainnet
+                ),
+                'help' => esc_html__('Enter RPC URL for BSC mainnet', 'cpmw'),
+                'desc' => 'Add RPC URL for Binance Smart Chain mainnet. You can find public endpoints at <a href="https://rpc.info/bsc" target="_blank">BSC mainnet RPC urls</a>.<br>',
+            ),
+            array(
+                'id' => 'bsc_testnet_rpc_url',
+                'title' => __('Network RPC URL', 'cpmw'),
+                'type' => 'text', 
+                'validate' => '',
+                'dependency' => array(
+                    'Chain_network', '==', '0x61' // Only show for BSC testnet
+                ),
+                'help' => esc_html__('Enter RPC URL for BSC testnet', 'cpmw'),
+                'desc' => 'Add RPC URL for Binance Smart Chain testnet. You can find public endpoints at <a href="https://rpc.info/bsc-testnet" target="_blank">BSC testnet RPC urls</a>.<br>',
+            ),
+            array(
+                'id' => 'sepolia_rpc_url',
+                'title' => __('Network RPC URL', 'cpmw'),
+                'type' => 'text',
+                'validate' => '', 
+                'dependency' => array(
+                    'Chain_network', '==', '0xaa36a7' // Only show for Sepolia testnet
+                ),
+                'help' => esc_html__('Enter RPC URL for Sepolia testnet', 'cpmw'),
+                'desc' => 'Add RPC URL for Ethereum Sepolia testnet. You can find public endpoints at <a href="https://rpc.info/ethereum-sepolia" target="_blank">Sepolia testnet RPC urls</a>.<br>',
             ),
             array(
                 'id' => 'eth_select_currency',

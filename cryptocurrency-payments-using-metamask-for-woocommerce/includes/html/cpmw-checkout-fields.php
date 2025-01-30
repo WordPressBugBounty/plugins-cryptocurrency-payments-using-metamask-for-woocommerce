@@ -98,6 +98,15 @@ if ( is_array( $crypto_currency ) ) {
 // Enqueue the connect wallet script
 wp_enqueue_script( 'cpmw_connect_wallet', CPMW_URL . 'assets/pay-with-metamask/build/checkout/' . $jsbuildUrl . '.js', array( 'wp-element' ), CPMW_VERSION, true );
 
+$network_rpc_map = [
+	'0x1' => 'eth_rpc_url',
+	'0x38' => 'bsc_rpc_url',
+	'0x61' => 'bsc_testnet_rpc_url',
+	'0xaa36a7' => 'sepolia_rpc_url'
+];
+
+$rpc_url = isset($network_rpc_map[$get_network]) ? $options[$network_rpc_map[$get_network]] : '';
+
 // Localize the connect wallet script with required data
 wp_localize_script(
 	'cpmw_connect_wallet',
@@ -113,6 +122,7 @@ wp_localize_script(
 		'const_msg'       => $const_msg,
 		'networkName'     => $network_name[ $get_network ],
 		'enabledCurrency' => $enabledCurrency,
+		'rpcUrl'         => $rpc_url,
 	)
 );
 // Output supported wallets if available

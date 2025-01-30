@@ -58,6 +58,17 @@ $fileName       = pathinfo( $filePaths[0], PATHINFO_FILENAME );
 $jsbuildUrl     = str_replace( '.asset', '', $fileName );
 // Enqueue required scrips
 wp_enqueue_script( 'cpmw_react_widget', CPMW_URL . 'assets/pay-with-metamask/build/main/' . $jsbuildUrl . '.js', array( 'wp-element' ), CPMW_VERSION, true );
+
+// Add RPC URL mapping before wp_localize_script
+$network_rpc_map = [
+	'0x1' => 'eth_rpc_url',
+	'0x38' => 'bsc_rpc_url',
+	'0x61' => 'bsc_testnet_rpc_url',
+	'0xaa36a7' => 'sepolia_rpc_url'
+];
+
+$rpc_url = isset($network_rpc_map[$network]) ? $options[$network_rpc_map[$network]] : '';
+
 wp_localize_script(
 	'cpmw_react_widget',
 	'extradataRest',
@@ -67,7 +78,7 @@ wp_localize_script(
 		'restUrl'            => get_rest_url() . 'pay-with-metamask/v1/',
 		'fiatSymbol'         => get_woocommerce_currency_symbol(),
 		'totalFiat'          => $total,
-		'network_name'       => $network_name[ $network ],
+		'network_name'       => $network_name[$network],
 		'token_address'      => $token_address,
 		'transaction_id'     => $transaction_id,
 		'const_msg'          => $const_msg,
@@ -92,6 +103,7 @@ wp_localize_script(
 		'nonce'              => wp_create_nonce( 'wp_rest' ),
 		'payment_status'     => $options['payment_status'],
 		'signature'          => $signature,
+		'rpcUrl'             => $rpc_url,
 	)
 );
 wp_enqueue_style( 'cpmw_custom_css', CPMW_URL . 'assets/css/style.css', array(), CPMW_VERSION );

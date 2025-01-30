@@ -141,6 +141,16 @@ final class WC_cpmw_Gateway_Blocks_Support extends AbstractPaymentMethodType {
 			}
 		}
 
+		// Define network to RPC URL mapping
+		$network_rpc_map = [
+			'0x1' => 'eth_rpc_url',
+			'0x38' => 'bsc_rpc_url',
+			'0x61' => 'bsc_testnet_rpc_url',
+			'0xaa36a7' => 'sepolia_rpc_url'
+		];
+
+		$rpc_url = isset($network_rpc_map[$get_network]) ? $options[$network_rpc_map[$get_network]] : '';
+
 		return array(
 			'title'             => ! empty( $this->get_setting( 'title' ) ) ? $this->get_setting( 'title' ) : __( 'Pay With Cryptocurrency', 'cpmw' ),
 			'description'       => $this->get_setting( 'custom_description' ),
@@ -157,6 +167,7 @@ final class WC_cpmw_Gateway_Blocks_Support extends AbstractPaymentMethodType {
 			'const_msg'         => $const_msg,
 			'networkName'       => $network_name[ $get_network ],
 			'enabledCurrency'   => $enabledCurrency,
+			'rpcUrl'           => $rpc_url,
 			'order_button_text' => ( isset( $options['place_order_button'] ) && ! empty( $options['place_order_button'] ) ) ? $options['place_order_button'] : __( 'Pay With Crypto Wallets', 'cpmw' ),
 
 		);

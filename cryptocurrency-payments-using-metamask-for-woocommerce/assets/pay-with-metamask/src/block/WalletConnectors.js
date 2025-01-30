@@ -5,6 +5,7 @@ import {
   createConfig,
   useAccount,
   useDisconnect,
+  http
 } from "wagmi";
 import { ConnectKitProvider, getDefaultConfig, useModal } from "connectkit";
 import {  
@@ -16,7 +17,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Fetching settings from window object
 const settings = window.wc.wcSettings.getPaymentMethodData( 'cpmw' );
-const {const_msg,networkName } = settings;
+const {const_msg,networkName,rpcUrl } = settings;
 
 // Component to handle balance and connection
 const BalanceAndConnect = ({ currentchain, config, switchModal, switchHandler }) => {  
@@ -192,6 +193,9 @@ const createCustomConfig = (props) => {
     appDescription: props.appDescription,
     appUrl: props.appUrl,
     appIcon: props.appIcon,
+    transports: {
+      [props.chains.id]: http(props.rpcUrl),
+    },
   });
 
   if (customConfig) {
@@ -220,6 +224,7 @@ const App = (props) => {
         chains: props.networks,
         appUrl: window.location.host,
         appIcon: "https://family.co/logo.png",
+        rpcUrl: rpcUrl
       };
       setConfig(createCustomConfig(configProps));
     }, [props.networks]);

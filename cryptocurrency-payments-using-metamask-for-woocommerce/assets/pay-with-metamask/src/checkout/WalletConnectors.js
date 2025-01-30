@@ -4,6 +4,7 @@ import {
   createConfig,
   useAccount,
   useDisconnect,
+  http
 } from "wagmi";
 import { ConnectKitProvider, getDefaultConfig, useModal } from "connectkit";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -12,7 +13,8 @@ import {
   CustomConnectButton
 } from "../component/helper";
 
-const {const_msg,networkName } = connect_wallts;
+const {const_msg,networkName,rpcUrl } = connect_wallts;
+
 const BalanceAndConnect = ({ currentchain, config, switchModal, switchHandler}) => {
   const [triggered, setTriggered] = useState(false);
   const { open, setOpen, openSwitchNetworks } = useModal();
@@ -103,6 +105,9 @@ const createCustomConfig = (props) => {
     appDescription: props.appDescription,
     appUrl: props.appUrl,
     appIcon: props.appIcon,
+    transports: {
+      [props.chains.id]: http(props.rpcUrl)
+    }
   });
 
   if (customConfig) {
@@ -143,6 +148,7 @@ const App = (props) => {
         chains: props.networks,
         appUrl: window.location.host, // your app's URL
         appIcon: "https://family.co/logo.png", // your app's icon URL
+        rpcUrl: rpcUrl,
         // Add other props as needed
       };
       setConfig(createCustomConfig(configProps));

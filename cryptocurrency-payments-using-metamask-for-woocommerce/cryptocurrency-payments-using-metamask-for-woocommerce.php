@@ -4,7 +4,7 @@
  * Description:Use MataMask cryptocurrency payment gateway for WooCommerce store and let customers pay with USDT, ETH, BNB or BUSD.
  * Author:Cool Plugins
  * Author URI:https://coolplugins.net/
- * Version: 1.6.4
+ * Version: 1.6.5
  * License: GPL2
  * Text Domain: cpmw
  * Domain Path: /languages
@@ -32,7 +32,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-define( 'CPMW_VERSION', '1.6.4' );
+define( 'CPMW_VERSION', '1.6.5' );
 define( 'CPMW_FILE', __FILE__ );
 define( 'CPMW_PATH', plugin_dir_path( CPMW_FILE ) );
 define( 'CPMW_URL', plugin_dir_url( CPMW_FILE ) );
@@ -42,6 +42,9 @@ define( 'CPMW_BUY_PRO', 'https://paywithcryptocurrency.net/wordpress-plugin/pay-
 if ( ! defined( 'CPMW_DEMO_URL' ) ) {
 	define( 'CPMW_DEMO_URL', 'https://paywithcryptocurrency.net/cart/?add-to-cart=2996&utm_source=cpmw_plugin&utm_medium=inside&utm_campaign=demo&utm_content=check-demo' );
 }
+
+define('CPMW_FEEDBACK_API',"https://feedback.coolplugins.net/");
+
 /*** cpmw_metamask_pay main class by CoolPlugins.net */
 if ( ! class_exists( 'cpmw_metamask_pay' ) ) {
 	final class cpmw_metamask_pay {
@@ -86,6 +89,10 @@ if ( ! class_exists( 'cpmw_metamask_pay' ) ) {
 			add_action( 'csf_cpmw_settings_save_before', array( $this, 'cpmw_delete_trainsient' ), 10, 2 );
 			add_action( 'woocommerce_blocks_loaded', array( $this, 'woocommerce_gateway_block_support' ) );
 			add_action( 'woocommerce_delete_order', array( $this, 'cpmw_delete_transaction' ) );
+			$this->cpfm_load_files();
+			add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'cpmw_settings_page' ) );
+            add_action('admin_init', array($this, 'cpmw_do_activation_redirect'));
+
 		}
 
 		/**
@@ -141,6 +148,12 @@ if ( ! class_exists( 'cpmw_metamask_pay' ) ) {
 		public function cmpw_admin_style( $hook ) {
 			 wp_enqueue_script( 'cpmw-custom', CPMW_URL . 'assets/js/cpmw-admin.js', array( 'jquery' ), CPMW_VERSION, true );
 			wp_enqueue_style( 'cpmw_admin_css', CPMW_URL . 'assets/css/cpmw-admin.css', array(), CPMW_VERSION, null, 'all' );
+			if(!wp_script_is( 'cpfm-data-share-setting.js' )){
+				$screen = get_current_screen();   
+				if (strpos($screen->id, 'cpmw-metamask-settings') !== false) {
+					wp_enqueue_script('cpfm-settings-data-share', CPMW_URL . 'assets/js/cpfm-data-share-setting.js', array('jquery'), CPMW_VERSION, true);
+				}
+			}
 
 		}
 
@@ -154,8 +167,7 @@ if ( ! class_exists( 'cpmw_metamask_pay' ) ) {
 				add_action( 'admin_notices', array( $this, 'cpmw_missing_wc_notice' ) );
 				return;
 			}
-			/*** Include helpers functions*/
-			require_once CPMW_PATH . 'includes/helper/cpmw-helper-functions.php';
+			/*** Include helpers functions*/	
 			require_once CPMW_PATH . 'includes/cpmw-woo-payment-gateway.php';
 			require_once CPMW_PATH . 'includes/db/cpmw-db.php';
 			require_once CPMW_PATH . 'includes/class-rest-api.php';
@@ -168,9 +180,72 @@ if ( ! class_exists( 'cpmw_metamask_pay' ) ) {
 				require_once CPMW_PATH . 'admin/codestar-framework/codestar-framework.php';
 			}
 
-			require_once CPMW_PATH . 'includes/cron/class-cpmw-cron.php';
+
+			if(!class_exists('CPFM_Feedback_Notice')){
+				require_once CPMW_PATH . 'admin/feedback/cpfm-feedback-notice.php';
+			}
+
+			add_action('cpfm_register_notice', function () {
+            
+                if (!class_exists('CPFM_Feedback_Notice') || !current_user_can('manage_options')) {
+                    return;
+                }
+
+                $notice = [
+
+                    'title' => __('MetaMask Pay By Cool Plugins', 'cpmw'),
+                    'message' => __('Help us make this plugin more compatible with your site by sharing non-sensitive site data.', 'cool-plugins-feedback'),
+                    'pages' => ['cpmw-metamask-settings'],
+                    'always_show_on' => ['cpmw-metamask-settings'], // This enables auto-show
+                    'plugin_name'=>'cpmw'
+                ];
+
+                CPFM_Feedback_Notice::cpfm_register_notice('cool_metamask', $notice);
+
+                    if (!isset($GLOBALS['cool_plugins_feedback'])) {
+                        $GLOBALS['cool_plugins_feedback'] = [];
+                    }
+                
+                    $GLOBALS['cool_plugins_feedback']['cool_metamask'][] = $notice;
+           
+            });
+
+			add_action('cpfm_after_opt_in_cpmw', function($category) {
+
+                if ($category === 'cool_metamask') {
+
+                    CPMW_cronjob::cpmw_send_data();
+                    
+                    $options = get_option('cpmw_settings', []);
+                    $options['cpmw_extra_info'] = true;
+                    update_option('cpmw_settings', $options);
+                }
+            });
+
 
 		}
+
+
+		function cpfm_load_files(){
+			require_once CPMW_PATH . 'includes/helper/cpmw-helper-functions.php';
+			require_once CPMW_PATH . 'includes/cron/class-cpmw-cron.php';
+		}
+
+		public function cpmw_settings_page( $links ) {
+            $links[] = '<a style="font-weight:bold" href="' . esc_url( 'https://cryptocurrencyplugins.com/wordpress-plugin/pay-with-metamask-for-woocommerce-pro/?utm_source=cpmw_plugin&utm_medium=inside&utm_campaign=get_pro&utm_content=dashboard' ) . '">' . __( 'Buy Pro', 'cpmw' ) . '</a>';
+            return $links;
+        }
+		
+		public function cpmw_do_activation_redirect()
+        {
+ 			 if (get_option('cpmw_fresh_install', false)) {
+                update_option('cpmw_fresh_install', false);
+                if (!isset($_GET['activate-multi'])) {
+                    wp_redirect(admin_url('admin.php?page=cpmw-metamask-settings'));
+                    exit;
+                }
+            }
+        }
 
 		public function cpmw_add_admin_options() {
 			require_once CPMW_PATH . 'admin/options-settings.php';
@@ -216,6 +291,28 @@ if ( ! class_exists( 'cpmw_metamask_pay' ) ) {
 			update_option( 'cpmw-already-rated', 'no' );
 			$db = new CPMW_database();
 			$db->create_table();
+
+			add_option('cpmw_fresh_install', true);
+
+			if (!get_option( 'cpmw_initial_save_version' ) ) {
+                add_option( 'cpmw_initial_save_version', CPMW_VERSION );
+            }
+
+            if(!get_option( 'cpmw-install-date' ) ) {
+                add_option( 'cpmw-install-date', gmdate('Y-m-d h:i:s') );
+            }
+
+
+
+		$options        = get_option('cpmw_settings', []);
+        if ( isset( $options['cpmw_extra_info'] ) && ( ! empty( $options['cpmw_extra_info'] ) || $options['cpmw_extra_info'] === '1' ) ) {
+
+            if (!wp_next_scheduled('cpmw_extra_data_update')) {
+                
+                wp_schedule_event(time(), 'every_30_days', 'cpmw_extra_data_update');
+
+            }
+        }
 		}
 
 		public static function deactivate() {
@@ -228,6 +325,9 @@ if ( ! class_exists( 'cpmw_metamask_pay' ) ) {
 
 			if ( wp_next_scheduled( 'cpmwp_order_autoupdate' ) ) {
 				wp_clear_scheduled_hook( 'cpmwp_order_autoupdate' );
+			}
+			if ( wp_next_scheduled( 'cpmw_extra_data_update' ) ) {
+				wp_clear_scheduled_hook( 'cpmw_extra_data_update' );
 			}
 
 		}
@@ -283,6 +383,13 @@ if ( ! class_exists( 'cpmw_metamask_pay' ) ) {
 		 */
 		public function load_text_domain() {
 			load_plugin_textdomain( 'cpmw', false, basename( dirname( __FILE__ ) ) . '/languages/' );
+
+			if (!get_option( 'cpmw_initial_save_version' ) ) {
+                add_option( 'cpmw_initial_save_version', CPMW_VERSION );
+            }
+			if(!get_option( 'cpmw-install-date' ) ) {
+                add_option( 'cpmw-install-date', gmdate('Y-m-d h:i:s') );
+            }
 		}
 		public function woocommerce_gateway_block_support() {
 			if ( class_exists( 'Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType' ) ) {

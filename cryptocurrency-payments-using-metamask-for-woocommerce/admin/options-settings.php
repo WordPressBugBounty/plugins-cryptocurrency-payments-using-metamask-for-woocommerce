@@ -21,263 +21,301 @@ if (class_exists('CSF')):
         'theme' => 'light',
 
     ));
+    
+    $fields = 
+        array(
+    
+    array(
+        'id' => 'user_wallet',
+        'title' => __('Payment Address <span style="color:red">(Required)</span>', 'cpmw'),
+        'type' => 'text',
+        'placeholder' => '0x1dCXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
+        'validate' => 'csf_validate_required',
+        'help' => esc_html__('Enter your default wallet address to receive crypto payments.', 'cpmw'),
+        'desc' => 'Enter your default wallet address to receive crypto payments.<br>
+                                    <span >You can use different payment addresses for different networks/chains in pro version.<a href="' . CPMW_BUY_PRO . '" target="_blank" > (Buy Pro) </a></span>',
+    ),
+    array(
+        'id' => 'currency_conversion_api',
+        'title' => esc_html__('Crypto Price API', 'cpmw'),
+        'type' => 'select',
+        'options' => array(
+            'cryptocompare' => __('CryptoCompare', 'cpmw'),
+            'openexchangerates' => __('Binance', 'cpmw'),
+        ),
+        'default' => 'openexchangerates',
+        'desc' => 'It will convert product price from fiat currency to cryptocurrency in real time. Match your token symbol with CryptoCompare or Binance listed tokens for accurate pricing.<br>
+                                    <span >You can add custom price for a token or use Coinbrain api in pro version. <a href="' . CPMW_BUY_PRO . '" target="_blank"> (Buy Pro) </a></span>',
+    ),
+    array(
+        'id' => 'crypto_compare_key',
+        'title' => __('CryptoCompare API Key <span style="color:red">(Required)</span>', 'cpmw'),
+        'type' => 'text',
+        'dependency' => array('currency_conversion_api', '==', 'cryptocompare'),
+        'desc' => 'Check -<a href=" https://paywithcryptocurrency.net/get-cryptocompare-free-api-key/" target="_blank">How to retrieve CryptoCompare free API key?</a>',
+    ),          
+    array(
+        'id' => 'openexchangerates_key',
+        'title' => __('Openexchangerates API Key', 'cpmw'),
+        'type' => 'text',   
+        'dependency' => array('currency_conversion_api', '==', 'openexchangerates'),       
+        'desc' => 'Please provide the API key if you are utilizing a store currency other than USD. Check -<a href="https://paywithcryptocurrency.net/get-openexchangerates-free-api-key/" target="_blank">How to retrieve openexchangerates free api key?</a>',
+    
+    ),
+    array(
+        'id' => 'Chain_network',
+        'title' => esc_html__('Select Network/Chain', 'cpmw'),
+        'type' => 'select',
+        'options' => array(
+            '0x1' => __('Ethereum Mainnet (ERC20)', 'cpmw'),
+            '0xaa36a7' => __('Ethereum Sepolia (Testnet)', 'cpmw'),
+            '0x5' => __('Ethereum Goerli (Testnet)', 'cpmw'),
+            '0x38' => __('Binance Smart Chain (BEP20)', 'cpmw'),
+            '0x61' => __('Binance Smart Chain (Testnet)', 'cpmw'),
+            'avalanche' => __('Avalanche (Pro)', 'cpmw'),
+            'polygon' => __('Polygon Mainnet (Pro)', 'cpmw'),
+            'custom' => __('Any Custom Network (Pro)', 'cpmw'),
+        ),
+        'desc' => '<span >You can add custom network/chain or select multiple networks/chains in pro version.<a href="' . CPMW_BUY_PRO . '" target="_blank"> (Buy Pro) </a></span>',
+        'default' => '0x1',
+    ),
+    array(
+        'id' => 'eth_rpc_url',
+        'title' => __('Network RPC URL', 'cpmw'),
+        'type' => 'text',
+        'validate' => '',
+        'dependency' => array(
+            'Chain_network', '==', '0x1' // Only show for Ethereum mainnet
+        ),
+        'help' => esc_html__('Enter RPC URL for Ethereum mainnet', 'cpmw'),
+        'desc' => 'Add RPC URL for Ethereum mainnet. You can find public endpoints at <a href="https://rpc.info/ethereum" target="_blank">Ethereum mainnet RPC urls</a>.<br>',
+    ),
+    array(
+        'id' => 'bsc_rpc_url', 
+        'title' => __('Network RPC URL', 'cpmw'),
+        'type' => 'text',
+        'validate' => '',
+        'dependency' => array(
+            'Chain_network', '==', '0x38' // Only show for BSC mainnet
+        ),
+        'help' => esc_html__('Enter RPC URL for BSC mainnet', 'cpmw'),
+        'desc' => 'Add RPC URL for Binance Smart Chain mainnet. You can find public endpoints at <a href="https://rpc.info/bsc" target="_blank">BSC mainnet RPC urls</a>.<br>',
+    ),
+    array(
+        'id' => 'bsc_testnet_rpc_url',
+        'title' => __('Network RPC URL', 'cpmw'),
+        'type' => 'text', 
+        'validate' => '',
+        'dependency' => array(
+            'Chain_network', '==', '0x61' // Only show for BSC testnet
+        ),
+        'help' => esc_html__('Enter RPC URL for BSC testnet', 'cpmw'),
+        'desc' => 'Add RPC URL for Binance Smart Chain testnet. You can find public endpoints at <a href="https://rpc.info/bsc-testnet" target="_blank">BSC testnet RPC urls</a>.<br>',
+    ),
+    array(
+        'id' => 'sepolia_rpc_url',
+        'title' => __('Network RPC URL', 'cpmw'),
+        'type' => 'text',
+        'validate' => '', 
+        'dependency' => array(
+            'Chain_network', '==', '0xaa36a7' // Only show for Sepolia testnet
+        ),
+        'help' => esc_html__('Enter RPC URL for Sepolia testnet', 'cpmw'),
+        'desc' => 'Add RPC URL for Ethereum Sepolia testnet. You can find public endpoints at <a href="https://rpc.info/ethereum-sepolia" target="_blank">Sepolia testnet RPC urls</a>.<br>',
+    ),
+    array(
+        'id' => 'eth_select_currency',
+        'title' => __('Select Crypto Currency <span style="color:red">(Required )</span>', 'cpmw'),
+        'type' => 'select',
+        'validate' => 'csf_validate_required',
+        'placeholder' => 'Select Crypto currency',
+        'options' => array(
+            'ETH' => __('Ethereum', 'cpmw'),
+            'USDT' => __('USDT', 'cpmw'),
+        ),
+        'chosen' => true,
+        'multiple' => true,
+        'settings' => array('width' => '50%'),
+        'dependency' => array('Chain_network', 'any', '0x1,0x5,0xaa36a7'),
+        'desc' => '<span >You can add any custom token/coin in pro version. <a href="' . CPMW_BUY_PRO . '" target="_blank"> (Buy Pro) </a></span>',
+        'default' => 'ETH',
+    
+    ),
+    array(
+        'id' => 'bnb_select_currency',
+        'title' => __('Select Crypto Currency <span style="color:red">(Required )</span>', 'cpmw'),
+        'type' => 'select',
+        'placeholder' => 'Select Crypto Currency',
+        'validate' => 'csf_validate_required',
+        'options' => array(
+            'BNB' => __('Binance Coin', 'cpmw'),
+            'BUSD' => __('BUSD', 'cpmw'),
+        ),
+        'chosen' => true,
+        'multiple' => true,
+        'settings' => array('width' => '50%'),
+        'dependency' => array('Chain_network', 'any', '0x38,0x61'),
+        'desc' => '<span >You can add any custom token/coin in pro version. <a href="' . CPMW_BUY_PRO . '" target="_blank"> (Buy Pro) </a></span>',
+        'default' => 'BNB',
+    ),
+    array(
+        'id' => 'enable_refund',
+        'title' => esc_html__('Enable Refund', 'cpmw'),
+        'type' => 'switcher',
+        'text_on' => 'Enable',
+        'text_off' => 'Disable',
+        'text_width' => 80,
+        'desc' => '<span >A pro feature to refund customer via crypto wallet from order page. <a href="' . CPMW_BUY_PRO . '" target="_blank"> (Buy Pro) </a></span>',
+        'help' => esc_html__('Enable refund option', 'cpmw'),
+        'default' => true,
+    ),
+    
+    array(
+        'id' => 'payment_status',
+        'title' => esc_html__('Payment Success: Order Status', 'cpmw'),
+        'type' => 'select',
+        'options' => apply_filters(
+            'cpmwp_settings_order_statuses',
+            array(
+                'default' => __('Woocommerce Default Status', 'cpmw'),
+                'on-hold' => __('On Hold', 'cpmw'),
+                'processing' => __('Processing', 'cpmw'),
+                'completed' => __('Completed', 'cpmw'),
+            )
+        ),
+        'desc' => __('Order status upon successful cryptocurrency payment.', 'cpmw'),
+        'default' => 'default',
+    ),
+    
+    array(
+        'id' => 'redirect_page',
+        'title' => esc_html__('Payment Success: Redirect Page', 'cpmw'),
+        'type' => 'text',
+        'placeholder' => 'https://coolplugins.net/my-account/orders/',
+        'desc' => 'Enter custom url to redirect or leave blank to update order status on same page.',
+    ),
+    array(
+        'id' => 'dynamic_messages',
+        'title' => esc_html__('Customize Text Display', 'cpmw'),
+        'type' => 'select',
+        'options' => array(
+            'confirm_msg' => __('Payment Confirmation (Popup)', 'cpmw'),
+            'payment_process_msg' => __('Payment Processing (Popup)', 'cpmw'),
+            'rejected_message' => __('Payment Rejected (Popup)', 'cpmw'),
+            'payment_msg' => __('Payment Completed (Popup)', 'cpmw'),
+            'place_order_button' => __('Place Order Button (Checkout page)', 'cpmw'),
+            'select_a_currency' => __('Select Coin (Checkout page)', 'cpmw'),
+        ),
+    
+        'desc' => __('Customize the text displayed by the plugin on the frontend.', 'cpmw'),
+        'default' => 'place_order_button',
+    ),
+    array(
+        'id' => 'confirm_msg',
+        'title' => esc_html__('Payment Confirmation (Popup)', 'cpmw'),
+        'type' => 'text',
+        'dependency' => array('dynamic_messages', '==', 'confirm_msg'),
+        'desc' => 'You can change it to your preferred text or leave it blank to keep the default text.',
+        'placeholder' => __('Confirm Payment Inside Your Wallet!', 'cpmw'),
+    ),
+    array(
+        'id' => 'payment_process_msg',
+        'title' => esc_html__('Payment Processing (Popup)', 'cpmw'),
+        'type' => 'text',
+        'dependency' => array('dynamic_messages', '==', 'payment_process_msg'),
+        'desc' => 'Custom message to show  while processing payment via blockchain.',
+        'placeholder' => __('Payment in process.', 'cpmw'),
+    ),
+    array(
+        'id' => 'rejected_message',
+        'title' => esc_html__('Payment Rejected (Popup)', 'cpmw'),
+        'type' => 'text',
+        'dependency' => array('dynamic_messages', '==', 'rejected_message'),
+        'desc' => 'Custom message to show  if you rejected payment via metamask.',
+        'placeholder' => __('Transaction rejected. ', 'cpmw'),
+    ),
+    array(
+        'id' => 'payment_msg',
+        'title' => esc_html__('Payment Completed (Popup)', 'cpmw'),
+        'type' => 'text',
+        'dependency' => array('dynamic_messages', '==', 'payment_msg'),
+        'placeholder' => __('Payment completed successfully.', 'cpmw'),
+        'desc' => 'Custom message to show  if  payment confirm  by blockchain.',
+    
+    ),
+    array(
+        'id' => 'place_order_button',
+        'title' => esc_html__('Place Order Button (Checkout page)', 'cpmw'),
+        'type' => 'text',
+        'dependency' => array('dynamic_messages', '==', 'place_order_button'),
+        'placeholder' => __('Pay With Crypto Wallets', 'cpmw'),
+        'desc' => 'Please specify a name for the "Place Order" button on the checkout page.',
+    
+    ),
+    array(
+        'id' => 'select_a_currency',
+        'title' => esc_html__('Select Coin (Checkout page)', 'cpmw'),
+        'type' => 'text',
+        'dependency' => array('dynamic_messages', '==', 'select_a_currency'),
+        'placeholder' => __('Please Select a Currency', 'cpmw'),
+        'desc' => 'Please provide a name for the label that selects the currency on the checkout page.',
+    
+    ),
+    array(
+        'id' => 'enable_debug_log',
+        'title' => esc_html__('Debug mode ', 'cpmw'),
+        'type' => 'switcher',
+        'text_on' => 'Enable',
+        'text_off' => 'Disable',
+        'text_width' => 80,
+        'desc' => 'When enabled, payment error logs will be saved to WooCommerce > Status > <a href="' . esc_url(get_admin_url(null, "admin.php?page=wc-status&tab=logs")) . '">Logs.</a>',
+        'help' => esc_html__('Enable debug mode', 'cpmwp'),
+        'default' => true,
+    ),
+);
+
+        $cpfm_opt_in    = get_option('cpfm_opt_in_choice_cool_metamask');
+        $notice_check   = isset($cpfm_opt_in) ? $cpfm_opt_in : '';
+        
+        if ( $notice_check ) {
+            
+            $api_option = get_option("cpmw_settings");
+            
+            
+            if (!empty($api_option) && isset($api_option['cpmw_extra_info'])) {
+                
+                $choice = $api_option['cpmw_extra_info'];
+                
+            }
+            $choice = (!empty($choice) && $choice === 'yes') ? 'on' : '';
+
+            $fields[] = array(
+                'id'      => 'cpmw_extra_info',
+                'title'   => __('Make Cryptocurrency Even Better', 'cpmw'),
+                'type'    => 'checkbox',
+                'default' => $choice,
+                'desc'    => 'Help us make this plugin more compatible with your site by sharing non-sensitive site data. 
+                    <a href="#" class="cpfm-see-terms">[See terms]</a>
+                    <div id="termsBox" style="display: none; padding-left: 20px; margin-top: 10px; font-size: 12px; color: #999;">
+                        <p>' . esc_html__('Opt in to receive email updates about security improvements, new features, helpful tutorials, and occasional special offers. We\'ll collect:', 'ccpw') . '</p>
+                        <ul style="list-style-type:auto; padding-left: 20px;">
+                            <li>' . esc_html__('Your website home URL and WordPress admin email.', 'ccpw') . '</li>
+                            <li>' . esc_html__('To check plugin compatibility, we will collect the following: list of active plugins and themes, server type, MySQL version, WordPress version, memory limit, site language and database prefix.', 'ccpw') . '</li>
+                        </ul>
+                    </div>',
+            );
+            
+            
+        }
+            
+
 
     CSF::createSection($prefix, array(
 
         'id' => 'general_options',
         'title' => esc_html__('General Options', 'cpmw'),
         'icon' => 'fa fa-cog',
-        'fields' => array(
-
-            array(
-                'id' => 'user_wallet',
-                'title' => __('Payment Address <span style="color:red">(Required)</span>', 'cpmw'),
-                'type' => 'text',
-                'placeholder' => '0x1dCXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
-                'validate' => 'csf_validate_required',
-                'help' => esc_html__('Enter your default wallet address to receive crypto payments.', 'cpmw'),
-                'desc' => 'Enter your default wallet address to receive crypto payments.<br>
-											<span >You can use different payment addresses for different networks/chains in pro version.<a href="' . CPMW_BUY_PRO . '" target="_blank" > (Buy Pro) </a></span>',
-            ),
-            array(
-                'id' => 'currency_conversion_api',
-                'title' => esc_html__('Crypto Price API', 'cpmw'),
-                'type' => 'select',
-                'options' => array(
-                    'cryptocompare' => __('CryptoCompare', 'cpmw'),
-                    'openexchangerates' => __('Binance', 'cpmw'),
-                ),
-                'default' => 'openexchangerates',
-                'desc' => 'It will convert product price from fiat currency to cryptocurrency in real time. Match your token symbol with CryptoCompare or Binance listed tokens for accurate pricing.<br>
-											<span >You can add custom price for a token or use Coinbrain api in pro version. <a href="' . CPMW_BUY_PRO . '" target="_blank"> (Buy Pro) </a></span>',
-            ),
-            array(
-                'id' => 'crypto_compare_key',
-                'title' => __('CryptoCompare API Key <span style="color:red">(Required)</span>', 'cpmw'),
-                'type' => 'text',
-                'dependency' => array('currency_conversion_api', '==', 'cryptocompare'),
-                'desc' => 'Check -<a href=" https://paywithcryptocurrency.net/get-cryptocompare-free-api-key/" target="_blank">How to retrieve CryptoCompare free API key?</a>',
-            ),          
-            array(
-                'id' => 'openexchangerates_key',
-                'title' => __('Openexchangerates API Key', 'cpmw'),
-                'type' => 'text',   
-                'dependency' => array('currency_conversion_api', '==', 'openexchangerates'),       
-                'desc' => 'Please provide the API key if you are utilizing a store currency other than USD. Check -<a href="https://paywithcryptocurrency.net/get-openexchangerates-free-api-key/" target="_blank">How to retrieve openexchangerates free api key?</a>',
-
-            ),
-            array(
-                'id' => 'Chain_network',
-                'title' => esc_html__('Select Network/Chain', 'cpmw'),
-                'type' => 'select',
-                'options' => array(
-                    '0x1' => __('Ethereum Mainnet (ERC20)', 'cpmw'),
-                    '0xaa36a7' => __('Ethereum Sepolia (Testnet)', 'cpmw'),
-                    '0x5' => __('Ethereum Goerli (Testnet)', 'cpmw'),
-                    '0x38' => __('Binance Smart Chain (BEP20)', 'cpmw'),
-                    '0x61' => __('Binance Smart Chain (Testnet)', 'cpmw'),
-                    'avalanche' => __('Avalanche (Pro)', 'cpmw'),
-                    'polygon' => __('Polygon Mainnet (Pro)', 'cpmw'),
-                    'custom' => __('Any Custom Network (Pro)', 'cpmw'),
-                ),
-                'desc' => '<span >You can add custom network/chain or select multiple networks/chains in pro version.<a href="' . CPMW_BUY_PRO . '" target="_blank"> (Buy Pro) </a></span>',
-                'default' => '0x1',
-            ),
-            array(
-                'id' => 'eth_rpc_url',
-                'title' => __('Network RPC URL', 'cpmw'),
-                'type' => 'text',
-                'validate' => '',
-                'dependency' => array(
-                    'Chain_network', '==', '0x1' // Only show for Ethereum mainnet
-                ),
-                'help' => esc_html__('Enter RPC URL for Ethereum mainnet', 'cpmw'),
-                'desc' => 'Add RPC URL for Ethereum mainnet. You can find public endpoints at <a href="https://rpc.info/ethereum" target="_blank">Ethereum mainnet RPC urls</a>.<br>',
-            ),
-            array(
-                'id' => 'bsc_rpc_url', 
-                'title' => __('Network RPC URL', 'cpmw'),
-                'type' => 'text',
-                'validate' => '',
-                'dependency' => array(
-                    'Chain_network', '==', '0x38' // Only show for BSC mainnet
-                ),
-                'help' => esc_html__('Enter RPC URL for BSC mainnet', 'cpmw'),
-                'desc' => 'Add RPC URL for Binance Smart Chain mainnet. You can find public endpoints at <a href="https://rpc.info/bsc" target="_blank">BSC mainnet RPC urls</a>.<br>',
-            ),
-            array(
-                'id' => 'bsc_testnet_rpc_url',
-                'title' => __('Network RPC URL', 'cpmw'),
-                'type' => 'text', 
-                'validate' => '',
-                'dependency' => array(
-                    'Chain_network', '==', '0x61' // Only show for BSC testnet
-                ),
-                'help' => esc_html__('Enter RPC URL for BSC testnet', 'cpmw'),
-                'desc' => 'Add RPC URL for Binance Smart Chain testnet. You can find public endpoints at <a href="https://rpc.info/bsc-testnet" target="_blank">BSC testnet RPC urls</a>.<br>',
-            ),
-            array(
-                'id' => 'sepolia_rpc_url',
-                'title' => __('Network RPC URL', 'cpmw'),
-                'type' => 'text',
-                'validate' => '', 
-                'dependency' => array(
-                    'Chain_network', '==', '0xaa36a7' // Only show for Sepolia testnet
-                ),
-                'help' => esc_html__('Enter RPC URL for Sepolia testnet', 'cpmw'),
-                'desc' => 'Add RPC URL for Ethereum Sepolia testnet. You can find public endpoints at <a href="https://rpc.info/ethereum-sepolia" target="_blank">Sepolia testnet RPC urls</a>.<br>',
-            ),
-            array(
-                'id' => 'eth_select_currency',
-                'title' => __('Select Crypto Currency <span style="color:red">(Required )</span>', 'cpmw'),
-                'type' => 'select',
-                'validate' => 'csf_validate_required',
-                'placeholder' => 'Select Crypto currency',
-                'options' => array(
-                    'ETH' => __('Ethereum', 'cpmw'),
-                    'USDT' => __('USDT', 'cpmw'),
-                ),
-                'chosen' => true,
-                'multiple' => true,
-                'settings' => array('width' => '50%'),
-                'dependency' => array('Chain_network', 'any', '0x1,0x5,0xaa36a7'),
-                'desc' => '<span >You can add any custom token/coin in pro version. <a href="' . CPMW_BUY_PRO . '" target="_blank"> (Buy Pro) </a></span>',
-                'default' => 'ETH',
-
-            ),
-            array(
-                'id' => 'bnb_select_currency',
-                'title' => __('Select Crypto Currency <span style="color:red">(Required )</span>', 'cpmw'),
-                'type' => 'select',
-                'placeholder' => 'Select Crypto Currency',
-                'validate' => 'csf_validate_required',
-                'options' => array(
-                    'BNB' => __('Binance Coin', 'cpmw'),
-                    'BUSD' => __('BUSD', 'cpmw'),
-                ),
-                'chosen' => true,
-                'multiple' => true,
-                'settings' => array('width' => '50%'),
-                'dependency' => array('Chain_network', 'any', '0x38,0x61'),
-                'desc' => '<span >You can add any custom token/coin in pro version. <a href="' . CPMW_BUY_PRO . '" target="_blank"> (Buy Pro) </a></span>',
-                'default' => 'BNB',
-            ),
-            array(
-                'id' => 'enable_refund',
-                'title' => esc_html__('Enable Refund', 'cpmw'),
-                'type' => 'switcher',
-                'text_on' => 'Enable',
-                'text_off' => 'Disable',
-                'text_width' => 80,
-                'desc' => '<span >A pro feature to refund customer via crypto wallet from order page. <a href="' . CPMW_BUY_PRO . '" target="_blank"> (Buy Pro) </a></span>',
-                'help' => esc_html__('Enable refund option', 'cpmw'),
-                'default' => true,
-            ),
-
-            array(
-                'id' => 'payment_status',
-                'title' => esc_html__('Payment Success: Order Status', 'cpmw'),
-                'type' => 'select',
-                'options' => apply_filters(
-                    'cpmwp_settings_order_statuses',
-                    array(
-                        'default' => __('Woocommerce Default Status', 'cpmw'),
-                        'on-hold' => __('On Hold', 'cpmw'),
-                        'processing' => __('Processing', 'cpmw'),
-                        'completed' => __('Completed', 'cpmw'),
-                    )
-                ),
-                'desc' => __('Order status upon successful cryptocurrency payment.', 'cpmw'),
-                'default' => 'default',
-            ),
-
-            array(
-                'id' => 'redirect_page',
-                'title' => esc_html__('Payment Success: Redirect Page', 'cpmw'),
-                'type' => 'text',
-                'placeholder' => 'https://coolplugins.net/my-account/orders/',
-                'desc' => 'Enter custom url to redirect or leave blank to update order status on same page.',
-            ),
-            array(
-                'id' => 'dynamic_messages',
-                'title' => esc_html__('Customize Text Display', 'cpmw'),
-                'type' => 'select',
-                'options' => array(
-                    'confirm_msg' => __('Payment Confirmation (Popup)', 'cpmw'),
-                    'payment_process_msg' => __('Payment Processing (Popup)', 'cpmw'),
-                    'rejected_message' => __('Payment Rejected (Popup)', 'cpmw'),
-                    'payment_msg' => __('Payment Completed (Popup)', 'cpmw'),
-                    'place_order_button' => __('Place Order Button (Checkout page)', 'cpmw'),
-                    'select_a_currency' => __('Select Coin (Checkout page)', 'cpmw'),
-                ),
-
-                'desc' => __('Customize the text displayed by the plugin on the frontend.', 'cpmw'),
-                'default' => 'place_order_button',
-            ),
-            array(
-                'id' => 'confirm_msg',
-                'title' => esc_html__('Payment Confirmation (Popup)', 'cpmw'),
-                'type' => 'text',
-                'dependency' => array('dynamic_messages', '==', 'confirm_msg'),
-                'desc' => 'You can change it to your preferred text or leave it blank to keep the default text.',
-                'placeholder' => __('Confirm Payment Inside Your Wallet!', 'cpmw'),
-            ),
-            array(
-                'id' => 'payment_process_msg',
-                'title' => esc_html__('Payment Processing (Popup)', 'cpmw'),
-                'type' => 'text',
-                'dependency' => array('dynamic_messages', '==', 'payment_process_msg'),
-                'desc' => 'Custom message to show  while processing payment via blockchain.',
-                'placeholder' => __('Payment in process.', 'cpmw'),
-            ),
-            array(
-                'id' => 'rejected_message',
-                'title' => esc_html__('Payment Rejected (Popup)', 'cpmw'),
-                'type' => 'text',
-                'dependency' => array('dynamic_messages', '==', 'rejected_message'),
-                'desc' => 'Custom message to show  if you rejected payment via metamask.',
-                'placeholder' => __('Transaction rejected. ', 'cpmw'),
-            ),
-            array(
-                'id' => 'payment_msg',
-                'title' => esc_html__('Payment Completed (Popup)', 'cpmw'),
-                'type' => 'text',
-                'dependency' => array('dynamic_messages', '==', 'payment_msg'),
-                'placeholder' => __('Payment completed successfully.', 'cpmw'),
-                'desc' => 'Custom message to show  if  payment confirm  by blockchain.',
-
-            ),
-            array(
-                'id' => 'place_order_button',
-                'title' => esc_html__('Place Order Button (Checkout page)', 'cpmw'),
-                'type' => 'text',
-                'dependency' => array('dynamic_messages', '==', 'place_order_button'),
-                'placeholder' => __('Pay With Crypto Wallets', 'cpmw'),
-                'desc' => 'Please specify a name for the "Place Order" button on the checkout page.',
-
-            ),
-            array(
-                'id' => 'select_a_currency',
-                'title' => esc_html__('Select Coin (Checkout page)', 'cpmw'),
-                'type' => 'text',
-                'dependency' => array('dynamic_messages', '==', 'select_a_currency'),
-                'placeholder' => __('Please Select a Currency', 'cpmw'),
-                'desc' => 'Please provide a name for the label that selects the currency on the checkout page.',
-
-            ),
-            array(
-                'id' => 'enable_debug_log',
-                'title' => esc_html__('Debug mode ', 'cpmw'),
-                'type' => 'switcher',
-                'text_on' => 'Enable',
-                'text_off' => 'Disable',
-                'text_width' => 80,
-                'desc' => 'When enabled, payment error logs will be saved to WooCommerce > Status > <a href="' . esc_url(get_admin_url(null, "admin.php?page=wc-status&tab=logs")) . '">Logs.</a>',
-                'help' => esc_html__('Enable debug mode', 'cpmwp'),
-                'default' => true,
-            ),
-
-        ),
+        'fields' => $fields,
     ));
     CSF::createSection(
         $prefix,

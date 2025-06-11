@@ -207,6 +207,32 @@ if ( ! class_exists( 'CSF_Options' ) ) {
       // No worries, This "POST" requests is sanitizing in the below foreach. see #L337 - #L341
       $response  = ( $ajax && ! empty( $_POST['data'] ) ) ? json_decode( wp_unslash( trim( $_POST['data'] ) ), true ) : $_POST;
 
+     $object_id = get_option('cpmw_settings', []);
+      if( $object_id ){
+
+
+      $is_checked = isset($object_id['cpmw_extra_info']) && 
+      ($object_id['cpmw_extra_info'] === true || $object_id['cpmw_extra_info'] === '1');
+
+
+      if ($is_checked) {
+
+
+        if (method_exists('CPMW_cronjob', 'cpmw_send_data') && !isset($_POST['cpmw_extra_info'])) {
+          if (!wp_next_scheduled('cpmw_extra_data_update')) {
+            $options['cpmw_extra_info'] = true;
+            CPMW_cronjob::cpmw_send_data(); 
+            wp_schedule_event(time(), 'every_30_days', 'cpmw_extra_data_update');
+
+          }
+        }
+
+        
+      } else {
+          wp_clear_scheduled_hook('cpmw_extra_data_update');
+      }
+      }
+
       // Set variables.
       $data      = array();
       $noncekey  = 'csf_options_nonce'. $this->unique;

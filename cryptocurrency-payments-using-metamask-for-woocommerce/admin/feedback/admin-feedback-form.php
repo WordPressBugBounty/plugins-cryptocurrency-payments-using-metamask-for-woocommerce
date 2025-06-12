@@ -210,7 +210,7 @@ class Cpmw_feedback{
             $site_url           = esc_url(site_url());
             $plugin_initial =  get_option( 'cpmw_initial_save_version' );
             $install_date 		= get_option('cpmw-install-date');
-            $unique_key     	= '7'; 
+            $unique_key     	= '26'; 
             $site_id        	= $site_url . '-' . $install_date . '-' . $unique_key;
 			$response = wp_remote_post( $this->feedback_url , [
                 'timeout' => 30,

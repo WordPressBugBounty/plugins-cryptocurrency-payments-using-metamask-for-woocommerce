@@ -82,7 +82,7 @@ if ( ! class_exists( 'CPMW_cronjob' ) ) {
             $extra_details  = $extra_data_details['extra_details'];
             $site_url       = get_site_url();
             $install_date   = get_option('cpmw-install-date');
-            $uni_id         = '7';
+            $uni_id         = '26';
             $site_id        = $site_url . '-' . $install_date . '-' . $uni_id;
             $initial_version = get_option('cpmw_initial_save_version');
             $initial_version = is_string($initial_version) ? sanitize_text_field($initial_version) : 'N/A';

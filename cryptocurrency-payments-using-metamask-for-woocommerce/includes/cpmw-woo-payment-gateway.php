@@ -20,9 +20,11 @@ class WC_cpmw_Gateway extends WC_Payment_Gateway {
 		$this->init_form_fields();
 		$this->init_settings();
 		$this->enabled           = $this->get_option( 'enabled' );
-		$this->title             = ! empty( $this->get_option( 'title' ) ) ? $this->get_option( 'title' ) : 'MetaMask Pay';
-		$this->description       = $this->get_option( 'custom_description' );
-		$this->order_button_text = ( isset( $optionss['place_order_button'] ) && ! empty( $optionss['place_order_button'] ) ) ? $optionss['place_order_button'] : __( 'Pay With Crypto Wallets', 'cpmwp' );
+		$title_opt               = $this->get_option( 'title' );
+		$this->title             = ! empty( $title_opt ) ? sanitize_text_field( $title_opt ) : 'MetaMask Pay';
+		$desc_opt                = $this->get_option( 'custom_description' );
+		$this->description       = ! empty( $desc_opt ) ? wp_kses_post( $desc_opt ) : '';
+		$this->order_button_text = ( isset( $optionss['place_order_button'] ) && ! empty( $optionss['place_order_button'] ) ) ? sanitize_text_field( $optionss['place_order_button'] ) : __( 'Pay With Crypto Wallets', 'cpmwp' );
 		// Add action hooks
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
 		add_action( 'woocommerce_receipt_' . $this->id, array( $this, 'pay_order_page' ) );
@@ -39,7 +41,7 @@ class WC_cpmw_Gateway extends WC_Payment_Gateway {
 					display: none;
 				}</style>
 				<div class="notice notice-error is-dismissible">
-					<p><?php _e( 'Current WooCommerce store currency is not supported by Cryptocurrency Payments Using MetaMask For WooCommerce', 'cpmw' ); ?></p>
+					<p><?php esc_html_e( 'Current WooCommerce store currency is not supported by Cryptocurrency Payments Using MetaMask For WooCommerce', 'cpmw' ); ?></p>
 				</div>
 					<?php
 				}
@@ -113,15 +115,37 @@ class WC_cpmw_Gateway extends WC_Payment_Gateway {
 			// Process the payment
 			$order            = wc_get_order( $order_id );
 			$settings_obj     = get_option( 'cpmw_settings' );
-			$crypto_wallet    = ! empty( $_POST['cpmwp_crypto_wallets'] ) ? sanitize_text_field( $_POST['cpmwp_crypto_wallets'] ) : 'ethereum';
-			$crypto_currency  = isset( $_POST['cpmwp_crypto_coin'] ) ? sanitize_text_field( $_POST['cpmwp_crypto_coin'] ) : '';
-			$selected_network = ! empty( $_POST['cpmw_payment_network'] ) ? sanitize_text_field( $_POST['cpmw_payment_network'] ) : '';
+
+			// Whitelist validation for crypto wallets
+			$allowed_wallets = array( 'ethereum', 'metamask', 'walletconnect' );
+            $crypto_wallet = ! empty( $_POST['cpmwp_crypto_wallets'] ) ? sanitize_text_field( wp_unslash( $_POST['cpmwp_crypto_wallets'] ) ) : 'ethereum';
+            if ( ! in_array( $crypto_wallet, $allowed_wallets, true ) ) {
+				$crypto_wallet = 'ethereum'; // Default to a safe value
+			}
+
+			// Whitelist validation for crypto currencies
+			$network = isset( $settings_obj['Chain_network'] ) ? $settings_obj['Chain_network'] : '';
+			$allowed_currencies = ( $network == '0x1' || $network == '0x5' || $network == '0xaa36a7' ) ?
+				(isset($settings_obj['eth_select_currency']) ? (array) $settings_obj['eth_select_currency'] : array()) : (isset($settings_obj['bnb_select_currency']) ? (array) $settings_obj['bnb_select_currency'] : array());
+            $crypto_currency = isset( $_POST['cpmwp_crypto_coin'] ) ? sanitize_text_field( wp_unslash( $_POST['cpmwp_crypto_coin'] ) ) : '';
+            if ( ! in_array( $crypto_currency, (array) $allowed_currencies, true ) ) {
+				wc_add_notice( __( 'Invalid cryptocurrency selected.', 'cpmw' ), 'error' );
+				return null;
+			}
+
+			// Whitelist validation for networks
+			$allowed_networks = array_keys( (array) $this->cpmw_supported_networks() );
+            $selected_network = ! empty( $_POST['cpmw_payment_network'] ) ? sanitize_text_field( wp_unslash( $_POST['cpmw_payment_network'] ) ) : '';
+            if ( ! in_array( $selected_network, $allowed_networks, true ) ) {
+				wc_add_notice( __( 'Invalid network selected.', 'cpmw' ), 'error' );
+				return null;
+			}
+			
 			$total            = $order->get_total();
 			$type             = $settings_obj['currency_conversion_api'];
 			$in_crypto        = $this->cpmw_price_conversion( $total, $crypto_currency, $type );
-			$network          = isset( $settings_obj['Chain_network'] ) ? $settings_obj['Chain_network'] : '';
 			$add_tokens       = $this->cpmw_add_tokens();
-			$token_address    = isset( $add_tokens[ $network ][ $crypto_currency ] ) ? $add_tokens[ $network ][ $crypto_currency ] : $crypto_currency;
+			$token_address    = ( isset( $add_tokens[ $network ] ) && is_array( $add_tokens[ $network ] ) && isset( $add_tokens[ $network ][ $crypto_currency ] ) ) ? $add_tokens[ $network ][ $crypto_currency ] : sanitize_text_field( $crypto_currency );
 			$user_wallet      = $settings_obj['user_wallet'];
 			$order->update_meta_data( 'cpmwp_selected_wallet', $crypto_wallet );
 
@@ -141,7 +165,7 @@ class WC_cpmw_Gateway extends WC_Payment_Gateway {
 
 			return array(
 				'result'   => 'success',
-				'redirect' => $url, // $this->get_return_url($order)
+				'redirect' => esc_url_raw( $url ), // $this->get_return_url($order)
 			);
 		} catch ( Exception $e ) {
 			wc_add_notice( __( 'Payment error:', 'cpmw' ) . ' Unknown coin', 'error' );
@@ -155,7 +179,8 @@ class WC_cpmw_Gateway extends WC_Payment_Gateway {
 		$order = wc_get_order( $order_id );
 
 		if ( $order->is_paid() ) {
-			wp_redirect( $order->get_checkout_order_received_url() );
+			wp_safe_redirect( $order->get_checkout_order_received_url() );
+			exit;
 		} else {
 			require_once CPMW_PATH . 'includes/html/cpmw-process-order.php';
 		}

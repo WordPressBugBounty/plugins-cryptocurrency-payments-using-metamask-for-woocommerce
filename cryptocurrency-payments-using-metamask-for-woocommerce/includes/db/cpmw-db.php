@@ -47,7 +47,9 @@ class CPMW_database {
 	public function cpmw_get_data() {
 		global $wpdb;
 
-		$results = $wpdb->get_results( "SELECT * FROM $this->table_name " );
+		// Use prepare with a placeholder for the table name to prevent SQL injection
+		$query = $wpdb->prepare("SELECT * FROM %i", $this->table_name);
+		$results = $wpdb->get_results($query);
 		return $results;
 
 	}
@@ -77,14 +79,30 @@ class CPMW_database {
 	public function update_fields_value( $order_id, $column_name, $new_value ) {
 		global $wpdb;
 
-		$dd = $wpdb->update(
+		$columns         = $this->get_columns();
+		$allowed_columns = array_keys( $columns );
+		$column_name     = sanitize_key( $column_name );
+		if ( ! in_array( $column_name, $allowed_columns, true ) ) {
+			return false;
+		}
+
+		$format = $columns[ $column_name ];
+		if ( '%d' === $format ) {
+			$new_value = (int) $new_value;
+		} else {
+			$new_value = is_string( $new_value ) ? sanitize_text_field( $new_value ) : (string) $new_value;
+		}
+
+		$wpdb->update(
 			$this->table_name,
 			array(
-				$column_name => $new_value, // Set the new value for the specified column
+				$column_name => $new_value,
 			),
 			array(
-				'order_id' => $order_id, // Set the ID of the row you want to update
-			)
+				'order_id' => (int) $order_id,
+			),
+			array( $format ),
+			array( '%d' )
 		);
 
 	}
@@ -92,15 +110,21 @@ class CPMW_database {
 	public function cpmw_get_data_of_pending_transaction() {
 		global $wpdb;
 
-		$results = $wpdb->get_results( "SELECT * FROM $this->table_name WHERE `transaction_id` != 'false' AND `status` = 'awaiting'" );
+		$query = $wpdb->prepare(
+			"SELECT * FROM %i WHERE transaction_id != %s AND status = %s",
+			$this->table_name,
+			'false',
+			'awaiting'
+		);
+		$results = $wpdb->get_results($query);
 		return $results;
 
 	}
 
 	public function coin_exists_by_id( $coin_ID ) {
 		global $wpdb;
-		$count = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $this->table_name WHERE order_id ='%s'", $coin_ID ) );
-		if ( $count == 1 ) {
+		$count = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM `{$this->table_name}` WHERE `order_id` = %d", (int) $coin_ID ) );
+		if ( (int) $count === 1 ) {
 			return true;
 		} else {
 			return false;
@@ -110,8 +134,8 @@ class CPMW_database {
 
 	public function check_transaction_id( $transaction_id ) {
 		global $wpdb;
-		$count = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $this->table_name WHERE transaction_id ='%s'", $transaction_id ) );
-		if ( $count == 1 ) {
+		$count = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM `{$this->table_name}` WHERE `transaction_id` = %s", sanitize_text_field( $transaction_id ) ) );
+		if ( (int) $count === 1 ) {
 			return true;
 		} else {
 			return false;
@@ -128,73 +152,45 @@ class CPMW_database {
 
 	public function wp_insert_rows( $row_arrays, $wp_table_name, $update = false, $primary_key = null ) {
 		global $wpdb;
-		$wp_table_name = esc_sql( $wp_table_name );
-		// Setup arrays for Actual Values, and Placeholders
-		$values        = array();
-		$place_holders = array();
-		$query         = '';
-		$query_columns = '';
-		// $floatCols = array('price', 'percent_change_24h', 'percent_change_1y', 'percent_change_30d', 'percent_change_7d', 'market_cap', 'total_volume', 'circulating_supply', 'ath', 'ath_change_percentage', 'high_24h', 'low_24h');
-
-		$query .= "INSERT INTO `{$wp_table_name}` (";
-
-		foreach ( $row_arrays as $key => $value ) {
-			// foreach ($row_array as $key => $value) {
-			// if ($key == 0) {
-			if ( $query_columns ) {
-				$query_columns .= ', ' . $key . '';
-			} else {
-				$query_columns .= '' . $key . '';
-			}
-			// }
-
-			$values[] = $value;
-
-			$symbol = '%s';
-			/*
-				 if (is_numeric($value)) {
-			$symbol = "%d";
-			}
-
-			if (in_array($key, $floatCols)) {
-			$symbol = "%f";
-			} */
-			if ( isset( $place_holders[ $key ] ) ) {
-				$place_holders[ $key ] .= ", '$symbol'";
-			} else {
-				$place_holders[ $key ] = "( '$symbol'";
-			}
-			// }
-			// mind closing the GAP
-			$place_holders[ $key ] .= ')';
-		}
-		// $place_holders[] .= ")";
-
-		$query .= " $query_columns ) VALUES (";
-
-		$query .= implode( ', ', $place_holders ) . ')';
-
-		if ( $update ) {
-			$update = " ON DUPLICATE KEY UPDATE $primary_key=VALUES( $primary_key ),";
-			$cnt    = 0;
-
-			foreach ( $row_arrays as $key => $value ) {
-				if ( $cnt == 0 ) {
-					$update .= "$key=VALUES($key)";
-					$cnt     = 1;
-				} else {
-					$update .= ", $key=VALUES($key)";
-				}
-			}
-			$query .= $update;
-		}
-		$sql = $wpdb->prepare( $query, $values );
-
-		if ( $wpdb->query( $sql ) ) {
-			return true;
-		} else {
+		if ( ! is_array( $row_arrays ) || empty( $row_arrays ) ) {
 			return false;
 		}
+
+		// Whitelist columns based on schema
+		$column_formats = $this->get_columns();
+		$allowed_cols   = array_keys( $column_formats );
+
+		$safe_table   = esc_sql( $wp_table_name );
+		$columns      = array();
+		$placeholders = array();
+		$values       = array();
+
+		foreach ( $row_arrays as $key => $value ) {
+			if ( ! in_array( $key, $allowed_cols, true ) ) {
+				continue;
+			}
+			$columns[]      = '`' . $key . '`';
+			$format         = isset( $column_formats[ $key ] ) ? $column_formats[ $key ] : '%s';
+			$placeholders[] = $format;
+			$values[]       = ( '%d' === $format ) ? (int) $value : ( is_scalar( $value ) ? (string) $value : wp_json_encode( $value ) );
+		}
+
+		if ( empty( $columns ) ) {
+			return false;
+		}
+
+		$sql  = 'INSERT INTO `' . $safe_table . '` (' . implode( ', ', $columns ) . ') VALUES (' . implode( ', ', $placeholders ) . ')';
+
+		if ( $update && $primary_key ) {
+			$updates = array();
+			foreach ( $columns as $col_backticked ) {
+				$updates[] = $col_backticked . '=VALUES(' . $col_backticked . ')';
+			}
+			$sql .= ' ON DUPLICATE KEY UPDATE ' . implode( ', ', $updates );
+		}
+
+		$prepared = $wpdb->prepare( $sql, $values );
+		return ( false !== $wpdb->query( $prepared ) );
 	}/**
 	  * Return the number of results found for a given query
 	  *
@@ -213,7 +209,7 @@ class CPMW_database {
 	public function delete_transaction( $order_id ): void {
 		if ( $order_id ) {
 			global $wpdb;
-			$sql = $wpdb->prepare( "DELETE FROM $this->table_name WHERE order_id = %d", esc_sql( $order_id ) );
+			$sql = $wpdb->prepare( "DELETE FROM $this->table_name WHERE order_id = %d", (int) $order_id );
 			$wpdb->query( $sql );
 		}
 	}
@@ -223,7 +219,7 @@ class CPMW_database {
 	 */
 	public function cpmw_get_tx_order_id( $tx_id ) {
 		global $wpdb;
-		$results = $wpdb->get_results( $wpdb->prepare( "SELECT order_id FROM $this->table_name WHERE transaction_id = %s", esc_sql( $tx_id ) ), ARRAY_A );
+		$results = $wpdb->get_results( $wpdb->prepare( "SELECT order_id FROM $this->table_name WHERE transaction_id = %s", $tx_id ), ARRAY_A );
 		$ids     = wp_list_pluck( $results, 'order_id' );
 
 		return $ids;

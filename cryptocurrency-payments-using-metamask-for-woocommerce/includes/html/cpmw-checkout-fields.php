@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Get plugin options
-$options = get_option( 'cpmw_settings' );
+$options = (array) get_option( 'cpmw_settings', array() );
 
 // Enqueue necessary styles
 wp_enqueue_style( 'cpmw_checkout', CPMW_URL . 'assets/css/checkout.css', array(), CPMW_VERSION );
@@ -15,21 +15,21 @@ do_action( 'woocommerce_cpmw_form_start', $this->id );
 $cpmw_settings = admin_url() . 'admin.php?page=cpmw-metamask-settings';
 
 // Get user wallet settings
-$user_wallet = $options['user_wallet'];
+$user_wallet = isset( $options['user_wallet'] ) ? sanitize_text_field( $options['user_wallet'] ) : '';
 
 // Get currency options
-$bnb_currency = $options['bnb_select_currency'];
-$eth_currency = $options['eth_select_currency'];
+$bnb_currency = isset( $options['bnb_select_currency'] ) ? (array) $options['bnb_select_currency'] : array();
+$eth_currency = isset( $options['eth_select_currency'] ) ? (array) $options['eth_select_currency'] : array();
 
 // Get currency conversion API options
-$compare_key     = $options['crypto_compare_key'];
-$openex_key      = $options['openexchangerates_key'];
-$select_currecny = $options['currency_conversion_api'];
+$compare_key     = isset( $options['crypto_compare_key'] ) ? sanitize_text_field( $options['crypto_compare_key'] ) : '';
+$openex_key      = isset( $options['openexchangerates_key'] ) ? sanitize_text_field( $options['openexchangerates_key'] ) : '';
+$select_currecny = isset( $options['currency_conversion_api'] ) ? sanitize_text_field( $options['currency_conversion_api'] ) : '';
 $const_msg       = $this->cpmw_const_messages();
 // Generate settings link HTML for admin
 $link_html = ( current_user_can( 'manage_options' ) ) ?
-'<a href="' . esc_url( $cpmw_settings ) . '" target="_blank">' .
-__( 'Click here', 'cpmw' ) . '</a>' . __( 'to open settings', 'cpmw' ) : '';
+'<a href="' . esc_url( $cpmw_settings ) . '" target="_blank" rel="noopener noreferrer">' .
+esc_html__( 'Click here', 'cpmw' ) . '</a> ' . esc_html__( 'to open settings', 'cpmw' ) : '';
 
 // Check for various conditions
 if ( empty( $user_wallet ) ) {
@@ -49,36 +49,58 @@ if ( empty( $bnb_currency ) || empty( $eth_currency ) ) {
 	return false;
 }
 
-// Use glob to get an array of file names in the folder
-$filePaths  = glob( CPMW_PATH . '/assets/pay-with-metamask/build/checkout' . '/*.php' );
-$fileName   = pathinfo( $filePaths[0], PATHINFO_FILENAME );
-$jsbuildUrl = str_replace( '.asset', '', $fileName );
+// Securely construct and validate the asset path to prevent path traversal.
+$jsbuildUrl         = '';
+$checkout_asset_dir = realpath( CPMW_PATH . '/assets/pay-with-metamask/build/checkout' );
+
+// Ensure the directory exists and is within the plugin's folder.
+if ( $checkout_asset_dir && strpos( $checkout_asset_dir, realpath( CPMW_PATH ) ) === 0 ) {
+	// Use glob to get an array of file names in the folder.
+	$filePaths = glob( $checkout_asset_dir . '/*.php' );
+
+	// Ensure we found a file and it's the correct asset file.
+	if ( ! empty( $filePaths ) ) {
+		$first_file = realpath( $filePaths[0] );
+		if ( $first_file && strpos( $first_file, $checkout_asset_dir ) === 0 ) {
+			$fileName   = pathinfo( $filePaths[0], PATHINFO_FILENAME );
+			$jsbuildUrl = str_replace( '.asset', '', $fileName );
+		}
+	}
+}
+
+// Stop if the build file is not found, and notify admin.
+if ( empty( $jsbuildUrl ) ) {
+	if ( current_user_can( 'manage_options' ) ) {
+		echo '<strong>' . esc_html__( 'Error: Checkout asset file not found. Please run the build process.', 'cpmw' ) . '</strong>';
+	}
+	return;
+}
 
 // Get supported network names
 $network_name = $this->cpmw_supported_networks();
 
 // Get selected network
-$get_network = $options['Chain_network'];
+$get_network = isset( $options['Chain_network'] ) ? sanitize_text_field( $options['Chain_network'] ) : '';
 
 // Get constant messages
 
 
 
 // Determine crypto currency based on network
-$crypto_currency     = ( $get_network == '0x1' || $get_network == '0x5' || $get_network == '0xaa36a7' ) ?
-$options['eth_select_currency'] : $options['bnb_select_currency'];
-$select_currency_lbl = ( isset( $options['select_a_currency'] ) && ! empty( $options['select_a_currency'] ) ) ? $options['select_a_currency'] : __( 'Please Select a Currency', 'cpmwp' );
+$crypto_currency     = in_array( $get_network, array( '0x1', '0x5', '0xaa36a7' ), true ) ? $eth_currency : $bnb_currency;
+$select_currency_lbl = ( isset( $options['select_a_currency'] ) && ! empty( $options['select_a_currency'] ) ) ? sanitize_text_field( $options['select_a_currency'] ) : __( 'Please Select a Currency', 'cpmwp' );
 // Get type and total price
-$type            = $options['currency_conversion_api'];
+$type            = $select_currecny;
 $total_price     = $this->get_order_total();
 $enabledCurrency = array();
 $error           = '';
 if ( is_array( $crypto_currency ) ) {
-	foreach ( $crypto_currency as $key => $value ) {
+foreach ( $crypto_currency as $key => $value ) {
+    $symbol = sanitize_text_field( $value );
 		// Get coin logo image URL
-		$image_url = $this->cpmw_get_coin_logo( $value );
-		// Perform price conversion
-		$in_crypto = $this->cpmw_price_conversion( $total_price, $value, $type );
+		$image_url = esc_url_raw( $this->cpmw_get_coin_logo( $symbol ) );
+    // Perform price conversion
+    $in_crypto = $this->cpmw_price_conversion( $total_price, $symbol, $type );
 
 		if ( isset( $in_crypto['restricted'] ) ) {
 			$error = $in_crypto['restricted'];
@@ -88,14 +110,16 @@ if ( is_array( $crypto_currency ) ) {
 			$error = $in_crypto['error'];
 			break; // Exit the loop if the API is restricted.
 		}
-		$enabledCurrency[ $value ] = array(
-			'symbol' => $value,
+    $enabledCurrency[ $symbol ] = array(
+        'symbol' => $symbol,
 			'price'  => $in_crypto,
 			'url'    => $image_url,
 		);
 	}
 }
 // Enqueue the connect wallet script
+// Ensure safe file name for enqueued script
+$jsbuildUrl = sanitize_file_name( $jsbuildUrl );
 wp_enqueue_script( 'cpmw_connect_wallet', CPMW_URL . 'assets/pay-with-metamask/build/checkout/' . $jsbuildUrl . '.js', array( 'wp-element' ), CPMW_VERSION, true );
 
 $network_rpc_map = [
@@ -105,7 +129,10 @@ $network_rpc_map = [
 	'0xaa36a7' => 'sepolia_rpc_url'
 ];
 
-$rpc_url = isset($network_rpc_map[$get_network]) ? $options[$network_rpc_map[$get_network]] : '';
+$rpc_url = ( isset( $network_rpc_map[ $get_network ] ) && isset( $options[ $network_rpc_map[ $get_network ] ] ) ) ? esc_url_raw( $options[ $network_rpc_map[ $get_network ] ] ) : '';
+
+// Sanitize network name for client use
+$network_name_value = isset( $network_name[ $get_network ] ) ? sanitize_text_field( $network_name[ $get_network ] ) : '';
 
 // Localize the connect wallet script with required data
 wp_localize_script(
@@ -113,16 +140,16 @@ wp_localize_script(
 	'connect_wallts',
 	array(
 		'total_price'     => $total_price,
-		'api_type'        => $type,
-		'decimalchainId'  => isset( $get_network ) ? hexdec( $get_network ) : false,
-		'active_network'  => isset( $get_network ) ? $get_network : false,
+        'api_type'        => $type,
+        'decimalchainId'  => $get_network ? hexdec( $get_network ) : false,
+        'active_network'  => $get_network ? $get_network : false,
 		'nonce'           => wp_create_nonce( 'wp_rest' ),
-		'restUrl'         => get_rest_url() . 'pay-with-metamask/v1/',
+        'restUrl'         => esc_url_raw( get_rest_url() . 'pay-with-metamask/v1/' ),
 		'currency_lbl'    => $select_currency_lbl,
 		'const_msg'       => $const_msg,
-		'networkName'     => $network_name[ $get_network ],
+        'networkName'     => $network_name_value,
 		'enabledCurrency' => $enabledCurrency,
-		'rpcUrl'         => $rpc_url,
+        'rpcUrl'          => $rpc_url,
 	)
 );
 // Output supported wallets if available

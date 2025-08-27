@@ -8,7 +8,7 @@ if (class_exists('CSF')):
         'framework_title' => esc_html__('Settings', 'cpmw'),
         'menu_title' => false,
         'menu_slug' => "cpmw-metamask-settings",
-        'menu_capability' => 'manage_options',
+        'menu_capability' => 'manage_woocommerce',
         'menu_type' => 'submenu',
         'menu_parent' => 'woocommerce',
         'menu_position' => 103,
@@ -33,7 +33,7 @@ if (class_exists('CSF')):
         'validate' => 'csf_validate_required',
         'help' => esc_html__('Enter your default wallet address to receive crypto payments.', 'cpmw'),
         'desc' => 'Enter your default wallet address to receive crypto payments.<br>
-                                    <span >You can use different payment addresses for different networks/chains in pro version.<a href="' . CPMW_BUY_PRO . '" target="_blank" > (Buy Pro) </a></span>',
+                                    <span >You can use different payment addresses for different networks/chains in pro version.<a href="' . esc_url( CPMW_BUY_PRO ) . '" target="_blank" rel="noopener noreferrer"> (Buy Pro) </a></span>',
     ),
     array(
         'id' => 'currency_conversion_api',
@@ -45,21 +45,21 @@ if (class_exists('CSF')):
         ),
         'default' => 'openexchangerates',
         'desc' => 'It will convert product price from fiat currency to cryptocurrency in real time. Match your token symbol with CryptoCompare or Binance listed tokens for accurate pricing.<br>
-                                    <span >You can add custom price for a token or use Coinbrain api in pro version. <a href="' . CPMW_BUY_PRO . '" target="_blank"> (Buy Pro) </a></span>',
+                                    <span >You can add custom price for a token or use Coinbrain api in pro version. <a href="' . esc_url( CPMW_BUY_PRO ) . '" target="_blank" rel="noopener noreferrer"> (Buy Pro) </a></span>',
     ),
     array(
         'id' => 'crypto_compare_key',
         'title' => __('CryptoCompare API Key <span style="color:red">(Required)</span>', 'cpmw'),
         'type' => 'text',
         'dependency' => array('currency_conversion_api', '==', 'cryptocompare'),
-        'desc' => 'Check -<a href=" https://paywithcryptocurrency.net/get-cryptocompare-free-api-key/" target="_blank">How to retrieve CryptoCompare free API key?</a>',
+        'desc' => 'Check -<a href="' . esc_url( 'https://paywithcryptocurrency.net/get-cryptocompare-free-api-key/' ) . '" target="_blank" rel="noopener noreferrer">How to retrieve CryptoCompare free API key?</a>',
     ),          
     array(
         'id' => 'openexchangerates_key',
         'title' => __('Openexchangerates API Key', 'cpmw'),
         'type' => 'text',   
         'dependency' => array('currency_conversion_api', '==', 'openexchangerates'),       
-        'desc' => 'Please provide the API key if you are utilizing a store currency other than USD. Check -<a href="https://paywithcryptocurrency.net/get-openexchangerates-free-api-key/" target="_blank">How to retrieve openexchangerates free api key?</a>',
+        'desc' => 'Please provide the API key if you are utilizing a store currency other than USD. Check -<a href="' . esc_url( 'https://paywithcryptocurrency.net/get-openexchangerates-free-api-key/' ) . '" target="_blank" rel="noopener noreferrer">How to retrieve openexchangerates free api key?</a>',
     
     ),
     array(
@@ -76,7 +76,7 @@ if (class_exists('CSF')):
             'polygon' => __('Polygon Mainnet (Pro)', 'cpmw'),
             'custom' => __('Any Custom Network (Pro)', 'cpmw'),
         ),
-        'desc' => '<span >You can add custom network/chain or select multiple networks/chains in pro version.<a href="' . CPMW_BUY_PRO . '" target="_blank"> (Buy Pro) </a></span>',
+        'desc' => '<span >You can add custom network/chain or select multiple networks/chains in pro version.<a href="' . esc_url( CPMW_BUY_PRO ) . '" target="_blank" rel="noopener noreferrer"> (Buy Pro) </a></span>',
         'default' => '0x1',
     ),
     array(
@@ -88,7 +88,7 @@ if (class_exists('CSF')):
             'Chain_network', '==', '0x1' // Only show for Ethereum mainnet
         ),
         'help' => esc_html__('Enter RPC URL for Ethereum mainnet', 'cpmw'),
-        'desc' => 'Add RPC URL for Ethereum mainnet. You can find public endpoints at <a href="https://rpc.info/ethereum" target="_blank">Ethereum mainnet RPC urls</a>.<br>',
+        'desc' => 'Add RPC URL for Ethereum mainnet. You can find public endpoints at <a href="' . esc_url( 'https://rpc.info/ethereum' ) . '" target="_blank" rel="noopener noreferrer">Ethereum mainnet RPC urls</a>.<br>',
     ),
     array(
         'id' => 'bsc_rpc_url', 
@@ -99,7 +99,7 @@ if (class_exists('CSF')):
             'Chain_network', '==', '0x38' // Only show for BSC mainnet
         ),
         'help' => esc_html__('Enter RPC URL for BSC mainnet', 'cpmw'),
-        'desc' => 'Add RPC URL for Binance Smart Chain mainnet. You can find public endpoints at <a href="https://rpc.info/bsc" target="_blank">BSC mainnet RPC urls</a>.<br>',
+        'desc' => 'Add RPC URL for Binance Smart Chain mainnet. You can find public endpoints at <a href="' . esc_url( 'https://rpc.info/bsc' ) . '" target="_blank" rel="noopener noreferrer">BSC mainnet RPC urls</a>.<br>',
     ),
     array(
         'id' => 'bsc_testnet_rpc_url',
@@ -110,7 +110,7 @@ if (class_exists('CSF')):
             'Chain_network', '==', '0x61' // Only show for BSC testnet
         ),
         'help' => esc_html__('Enter RPC URL for BSC testnet', 'cpmw'),
-        'desc' => 'Add RPC URL for Binance Smart Chain testnet. You can find public endpoints at <a href="https://rpc.info/bsc-testnet" target="_blank">BSC testnet RPC urls</a>.<br>',
+        'desc' => 'Add RPC URL for Binance Smart Chain testnet. You can find public endpoints at <a href="' . esc_url( 'https://rpc.info/bsc-testnet' ) . '" target="_blank" rel="noopener noreferrer">BSC testnet RPC urls</a>.<br>',
     ),
     array(
         'id' => 'sepolia_rpc_url',
@@ -121,7 +121,7 @@ if (class_exists('CSF')):
             'Chain_network', '==', '0xaa36a7' // Only show for Sepolia testnet
         ),
         'help' => esc_html__('Enter RPC URL for Sepolia testnet', 'cpmw'),
-        'desc' => 'Add RPC URL for Ethereum Sepolia testnet. You can find public endpoints at <a href="https://rpc.info/ethereum-sepolia" target="_blank">Sepolia testnet RPC urls</a>.<br>',
+        'desc' => 'Add RPC URL for Ethereum Sepolia testnet. You can find public endpoints at <a href="' . esc_url( 'https://rpc.info/ethereum-sepolia' ) . '" target="_blank" rel="noopener noreferrer">Sepolia testnet RPC urls</a>.<br>',
     ),
     array(
         'id' => 'eth_select_currency',
@@ -137,7 +137,7 @@ if (class_exists('CSF')):
         'multiple' => true,
         'settings' => array('width' => '50%'),
         'dependency' => array('Chain_network', 'any', '0x1,0x5,0xaa36a7'),
-        'desc' => '<span >You can add any custom token/coin in pro version. <a href="' . CPMW_BUY_PRO . '" target="_blank"> (Buy Pro) </a></span>',
+        'desc' => '<span >You can add any custom token/coin in pro version. <a href="' . esc_url( CPMW_BUY_PRO ) . '" target="_blank" rel="noopener noreferrer"> (Buy Pro) </a></span>',
         'default' => 'ETH',
     
     ),
@@ -155,7 +155,7 @@ if (class_exists('CSF')):
         'multiple' => true,
         'settings' => array('width' => '50%'),
         'dependency' => array('Chain_network', 'any', '0x38,0x61'),
-        'desc' => '<span >You can add any custom token/coin in pro version. <a href="' . CPMW_BUY_PRO . '" target="_blank"> (Buy Pro) </a></span>',
+        'desc' => '<span >You can add any custom token/coin in pro version. <a href="' . esc_url( CPMW_BUY_PRO ) . '" target="_blank" rel="noopener noreferrer"> (Buy Pro) </a></span>',
         'default' => 'BNB',
     ),
     array(
@@ -165,7 +165,7 @@ if (class_exists('CSF')):
         'text_on' => 'Enable',
         'text_off' => 'Disable',
         'text_width' => 80,
-        'desc' => '<span >A pro feature to refund customer via crypto wallet from order page. <a href="' . CPMW_BUY_PRO . '" target="_blank"> (Buy Pro) </a></span>',
+        'desc' => '<span >A pro feature to refund customer via crypto wallet from order page. <a href="' . esc_url( CPMW_BUY_PRO ) . '" target="_blank" rel="noopener noreferrer"> (Buy Pro) </a></span>',
         'help' => esc_html__('Enable refund option', 'cpmw'),
         'default' => true,
     ),
@@ -297,7 +297,7 @@ if (class_exists('CSF')):
                 'desc'    => 'Help us make this plugin more compatible with your site by sharing non-sensitive site data. 
                     <a href="#" class="cpfm-see-terms">[See terms]</a>
                     <div id="termsBox" style="display: none; padding-left: 20px; margin-top: 10px; font-size: 12px; color: #999;">
-                        <p>' . esc_html__('Opt in to receive email updates about security improvements, new features, helpful tutorials, and occasional special offers. We\'ll collect:', 'ccpw') . '</p>
+                        <p>' . esc_html__('Opt in to receive email updates about security improvements, new features, helpful tutorials, and occasional special offers. We\'ll collect:', 'ccpw') . ' <a href="' . esc_url( 'https://my.coolplugins.net/terms/usage-tracking/' ) . '" target="_blank">' . esc_html__( 'Click here', 'cpmw' ) . '</a></p>
                         <ul style="list-style-type:auto; padding-left: 20px;">
                             <li>' . esc_html__('Your website home URL and WordPress admin email.', 'ccpw') . '</li>
                             <li>' . esc_html__('To check plugin compatibility, we will collect the following: list of active plugins and themes, server type, MySQL version, WordPress version, memory limit, site language and database prefix.', 'ccpw') . '</li>
@@ -330,7 +330,7 @@ if (class_exists('CSF')):
                     'fields' => array(
                         array(
                             'type' => 'content',
-                            'content' => '<a href="' . CPMW_BUY_PRO . '" target="_blan" ><img src="' . CPMW_URL . '/assets/images/wallets-promotion.png"></a>',
+            'content' => '<a href="' . esc_url( 'https://paywithcryptocurrency.net/wordpress-plugin/pay-with-metamask-for-woocommerce-pro/?utm_source=cpmw_plugin&utm_medium=inside&utm_campaign=get_pro&utm_content=wallets_tab' ) . '" target="_blank" rel="noopener noreferrer"><img src="' . esc_url( CPMW_URL . 'assets/images/wallets-promotion.png' ) . '" alt=""></a>',
                         ),
 
                     ),
@@ -350,11 +350,11 @@ if (class_exists('CSF')):
             'fields' => array(
                 array(
                     'type' => 'content',
-                    'content' => ' <center><h2 style="color:red"><a href="' . CPMW_BUY_PRO . '" target="_blan" >Buy Pro</a> Version To Activate Below Features</h2></center>',
+                    'content' => ' <center><h2 style="color:red"><a href="' . esc_url( 'https://paywithcryptocurrency.net/wordpress-plugin/pay-with-metamask-for-woocommerce-pro/?utm_source=cpmw_plugin&utm_medium=inside&utm_campaign=get_pro&utm_content=networks_tab' ) . '" target="_blank" rel="noopener noreferrer">Buy Pro</a> Version To Activate Below Features</h2></center>',
                 ),
                 array(
                     'type' => 'content',
-                    'content' => '<a href="' . CPMW_BUY_PRO . '" target="_blan" ><img src="' . CPMW_URL . '/assets/images/promotion.png"></a>',
+                    'content' => '<a href="' . esc_url( 'https://paywithcryptocurrency.net/wordpress-plugin/pay-with-metamask-for-woocommerce-pro/?utm_source=cpmw_plugin&utm_medium=inside&utm_campaign=get_pro&utm_content=networks_tab' ) . '" target="_blank" rel="noopener noreferrer"><img src="' . esc_url( CPMW_URL . 'assets/images/promotion.png' ) . '" alt=""></a>',
                 ),
             ),
         ));
@@ -367,11 +367,11 @@ if (class_exists('CSF')):
             'fields' => array(
                 array(
                     'type' => 'content',
-                    'content' => ' <center><h2 style="color:red"><a href="' . CPMW_BUY_PRO . '" target="_blan" >Buy Pro</a> Version To Activate Below Features</h2></center>',
+                    'content' => ' <center><h2 style="color:red"><a href="' . esc_url( 'https://paywithcryptocurrency.net/wordpress-plugin/pay-with-metamask-for-woocommerce-pro/?utm_source=cpmw_plugin&utm_medium=inside&utm_campaign=get_pro&utm_content=crypto_wallets_tab' ) . '" target="_blank" rel="noopener noreferrer">Buy Pro</a> Version To Activate Below Features</h2></center>',
                 ),
                 array(
                     'type' => 'content',
-                    'content' => '<a href="' . CPMW_BUY_PRO . '" target="_blan" ><img src="' . CPMW_URL . '/assets/images/wallet-login.png"></a>',
+                    'content' => '<a href="' . esc_url( 'https://paywithcryptocurrency.net/wordpress-plugin/pay-with-metamask-for-woocommerce-pro/?utm_source=cpmw_plugin&utm_medium=inside&utm_campaign=get_pro&utm_content=crypto_wallets_tab' ) . '" target="_blank" rel="noopener noreferrer"><img src="' . esc_url( CPMW_URL . 'assets/images/wallet-login.png' ) . '" alt=""></a>',
                 ),
 
             ),
@@ -387,19 +387,19 @@ if (class_exists('CSF')):
             ),
             array(
                 'type' => 'subheading',
-                'content' => ' ETH Test Token For Sepolia Network: <a href="https://sepoliafaucet.com/" target="_blank">https://sepoliafaucet.com</a>',
+            'content' => ' ETH Test Token For Sepolia Network: <a href="' . esc_url( 'https://sepoliafaucet.com/' ) . '" target="_blank" rel="noopener noreferrer">https://sepoliafaucet.com</a>',
             ),
             array(
                 'type' => 'subheading',
-                'content' => ' USDT Test Token For Sepolia Network: <a href="https://chaindrop.org/?chainid=11155111&token=0x6175a8471c2122f778445e7e07a164250a19e661" target="_blank">https://chaindrop.org</a>',
+            'content' => ' USDT Test Token For Sepolia Network: <a href="' . esc_url( 'https://chaindrop.org/?chainid=11155111&token=0x6175a8471c2122f778445e7e07a164250a19e661' ) . '" target="_blank" rel="noopener noreferrer">https://chaindrop.org</a>',
             ),
             array(
                 'type' => 'subheading',
-                'content' => ' ETH Test Token For Goerli Network: <a href="https://goerlifaucet.com/" target="_blank">https://goerlifaucet.com/</a>',
+            'content' => ' ETH Test Token For Goerli Network: <a href="' . esc_url( 'https://goerlifaucet.com/' ) . '" target="_blank" rel="noopener noreferrer">https://goerlifaucet.com/</a>',
             ),
             array(
                 'type' => 'subheading',
-                'content' => 'Binance Test Tokens For Binance Network: <a href="https://testnet.binance.org/faucet-smart" target="_blank">https://testnet.binance.org/faucet-smart</a>',
+            'content' => 'Binance Test Tokens For Binance Network: <a href="' . esc_url( 'https://testnet.binance.org/faucet-smart' ) . '" target="_blank" rel="noopener noreferrer">https://testnet.binance.org/faucet-smart</a>',
             ),
 
         ),
@@ -513,7 +513,7 @@ if (class_exists('CSF')):
 					</tr>
 					</tbody>
 					</table>
-					<br><h1> <a class="button button-primary" href="' . CPMW_BUY_PRO . '" target="_blan">Buy Pro</a> <a class="button button-primary" href="' . CPMW_DEMO_URL . '" target="_blan"> Demo </a> <a class="button button-secondary" href="https://paywithcryptocurrency.net/docs/plugin-documentation/" target="_blan">Docs</a></h1>
+                    <br><h1> <a class="button button-primary" href="' . esc_url( 'https://paywithcryptocurrency.net/wordpress-plugin/pay-with-metamask-for-woocommerce-pro/?utm_source=cpmw_plugin&utm_medium=inside&utm_campaign=get_pro&utm_content=buy_pro_tab' ) . '" target="_blank" rel="noopener noreferrer">Buy Pro</a> <a class="button button-primary" href="' . esc_url( 'https://paywithcryptocurrency.net/wordpress-plugin/test-cryptocurrency-payment/?utm_source=cpmw_plugin&utm_medium=inside&utm_campaign=demo&utm_content=buy_pro_tab' ) . '" target="_blank" rel="noopener noreferrer"> Demo </a> <a class="button button-secondary" href="' . esc_url( 'https://paywithcryptocurrency.net/docs/plugin-documentation/?utm_source=cpmw_plugin&utm_medium=inside&utm_campaign=docs&utm_content=buy_pro_tab' ) . '" target="_blank" rel="noopener noreferrer">Docs</a></h1>
 					',
             ),
 

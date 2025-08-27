@@ -9,10 +9,55 @@ trait CPMW_HELPER {
 	}
 	// Generate a dynamic secret key for hash_hmac
 	protected function cpmw_get_secret_key() {
-		if ( get_option( 'cpmwp_secret_key' ) == false ) {
-			update_option( 'cpmwp_secret_key', wp_generate_password( 4, true, true ) );
+		$existing = get_option( 'cpmwp_secret_key' );
+
+		// Rotate if missing, not a string, or too short (legacy weak secret) to a strong 256-bit secret
+		if ( empty( $existing ) || ! is_string( $existing ) || strlen( $existing ) < 32 ) {
+			$new_secret = $this->cpmw_generate_secure_secret();
+			if ( $new_secret ) {
+				update_option( 'cpmwp_secret_key', $new_secret );
+				return $new_secret;
+			}
+			// Fallback if secret generation fails
+			error_log( 'CPMW: Failed to generate secure secret key' );
+			return false;
 		}
-		return get_option( 'cpmwp_secret_key' );
+
+		return $existing;
+	}
+
+	/**
+	 * Generate a strong printable secret for HMAC signing.
+	 *
+	 * @return string|false Base64 or high-entropy ASCII string (>= 32 chars), or false on failure
+	 */
+	protected function cpmw_generate_secure_secret() {
+		// Prefer cryptographically secure random bytes, encode to printable form
+		if ( function_exists( 'random_bytes' ) ) {
+			try {
+				return base64_encode( random_bytes( 32 ) ); // 256-bit key
+			} catch ( Exception $e ) {
+				error_log( 'CPMW: random_bytes() failed: ' . $e->getMessage() );
+			}
+		}
+		
+		if ( function_exists( 'openssl_random_pseudo_bytes' ) ) {
+			$strong = false;
+			$bytes = openssl_random_pseudo_bytes( 32, $strong );
+			if ( $strong && $bytes !== false ) {
+				return base64_encode( $bytes );
+			}
+			error_log( 'CPMW: openssl_random_pseudo_bytes() failed or not cryptographically strong' );
+		}
+		
+		// Fallback to WordPress high-entropy password generator
+		if ( function_exists( 'wp_generate_password' ) ) {
+			return wp_generate_password( 64, true, true );
+		}
+		
+		// Final fallback - should never reach here in WordPress environment
+		error_log( 'CPMW: All secure random generation methods failed' );
+		return false;
 	}
 
 	// Price conversion API start
@@ -20,9 +65,14 @@ trait CPMW_HELPER {
 	protected function cpmw_price_conversion( $total, $crypto, $type ) {
 		global $woocommerce;
 		$currency     = get_woocommerce_currency();
-		$settings_obj = get_option( 'cpmw_settings' );
+		$settings_obj = (array) get_option( 'cpmw_settings', array() );
 
-		$api = ! empty( $settings_obj['crypto_compare_key'] ) ? $settings_obj['crypto_compare_key'] : '';
+		// Sanitize inputs defensively
+		$total  = is_numeric( $total ) ? (float) $total : (float) str_replace( ',', '', (string) $total );
+		$crypto = sanitize_text_field( (string) $crypto );
+		$type   = sanitize_text_field( (string) $type );
+
+		$api = ! empty( $settings_obj['crypto_compare_key'] ) ? sanitize_text_field( $settings_obj['crypto_compare_key'] ) : '';
 
 		if ( $type == 'cryptocompare' ) {
 			if ( empty( $api ) ) {
@@ -49,7 +99,7 @@ trait CPMW_HELPER {
 
 				return isset( $current_price_array_USDT[ $crypto ] ) ? $this->cpmw_format_number( ( $current_price_array_USDT[ $crypto ] ) * $total ) : null;
 			} else {
-				$binance_price = CPMW_API_DATA::cpmw_binance_price_api( '' . $crypto . 'USDT' );
+				$binance_price = CPMW_API_DATA::cpmw_binance_price_api( $crypto . 'USDT' );
 
 				if ( isset( $binance_price->lastPrice ) ) {
 					$lastprice = $binance_price->lastPrice;
@@ -240,8 +290,8 @@ trait CPMW_HELPER {
 		// Get Metamask settings link
 		$cpmw_settings = admin_url() . 'admin.php?page=cpmw-metamask-settings';
 		$link_html     = ( current_user_can( 'manage_options' ) ) ?
-		'.<a href="' . esc_url( $cpmw_settings ) . '" target="_blank">' .
-		__( 'Click here', 'cpmw' ) . '</a>' . __( 'to open settings', 'cpmw' ) : '';
+		'.<a href="' . esc_url( $cpmw_settings ) . '" target="_blank" rel="noopener noreferrer">' .
+		esc_html__( 'Click here', 'cpmw' ) . '</a> ' . esc_html__( 'to open settings', 'cpmw' ) : '';
 		if ( ! empty( $error_message ) && $link ) {
 			wc_add_notice( '<strong>' . esc_html( $error_message ) . wp_kses_post( $link_html ) . '</strong>', 'error' );
 			return false;
@@ -251,10 +301,10 @@ trait CPMW_HELPER {
 		}
 	}
 	public function cpmwsaveErrorLogs( $log_entry ) {
-		$settings = get_option( 'cpmw_settings' );
+		$settings = (array) get_option( 'cpmw_settings', array() );
 		if ( ! isset( $settings['enable_debug_log'] ) || $settings['enable_debug_log'] == '1' ) {
 			$logger = wc_get_logger();
-			$logger->error( $log_entry, array( 'source' => 'pay_with_metamask' ) );
+			$logger->error( wp_strip_all_tags( (string) $log_entry ), array( 'source' => 'pay_with_metamask' ) );
 		}
 	}
 

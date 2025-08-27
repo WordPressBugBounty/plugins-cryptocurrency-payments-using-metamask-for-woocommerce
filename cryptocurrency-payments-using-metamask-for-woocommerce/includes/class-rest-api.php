@@ -130,7 +130,7 @@ class CpmwRestApi
         $nonce = isset($_POST['_wpnonce']) ? $_POST['_wpnonce'] : (isset($_SERVER['HTTP_X_WP_NONCE']) ? $_SERVER['HTTP_X_WP_NONCE'] : '');
         if (!wp_verify_nonce($nonce, 'wp_rest')) {
             $error_message = __('Nonce verification failed.', 'cpmw');
-            $log_entry = "[Order #$order_id] [FAILURE] " . $error_message . PHP_EOL;
+            $log_entry = "[Order #" . esc_html($order_id) . "] [FAILURE] " . esc_html($error_message) . PHP_EOL;
             $this->cpmwsaveErrorLogs($log_entry);
             return new WP_REST_Response(array('error' => $error_message), 400);
         }
@@ -138,7 +138,7 @@ class CpmwRestApi
         $order = new WC_Order($order_id);
         if ($order->is_paid()) {
             $error_message = __('This order has already paid', 'cpmw');
-            $log_entry = "[Order #$order_id] [FAILURE] " . $error_message . PHP_EOL;
+            $log_entry = "[Order #" . esc_html($order_id) . "] [FAILURE] " . esc_html($error_message) . PHP_EOL;
             $this->cpmwsaveErrorLogs($log_entry);
             return new WP_REST_Response(array('error' => $error_message), 400);
         }
@@ -189,7 +189,7 @@ class CpmwRestApi
             );
             $order->update_status('wc-failed', __('Order has been canceled due to Order Information mismatch', 'cpmw'));
             $error_message = __('Signature verification failed', 'cpmw');
-            $log_entry = "[Order #$order_id] [FAILURE] [Original data]:-" . $original_data . '[Received data]:-' . $receve_tx_req_data . $error_message . PHP_EOL;
+            $log_entry = "[Order #" . esc_html($order_id) . "] [FAILURE] [Original data]:-" . esc_html($original_data) . '[Received data]:-' . esc_html($receve_tx_req_data) . esc_html($error_message) . PHP_EOL;
             $this->cpmwsaveErrorLogs($log_entry);
             return new WP_REST_Response(array('error' => $error_message), 400);
 
@@ -198,7 +198,7 @@ class CpmwRestApi
         if ($transaction_local_id != $trasn_id) {
             $order->update_status('wc-failed', __('Order has been canceled due to Order Information mismatch', 'cpmw'));
             $error_message = __('Transaction mismatch.', 'cpmw');
-            $log_entry = "[Order #$order_id] [FAILURE] " . $error_message . PHP_EOL;
+            $log_entry = "[Order #" . esc_html($order_id) . "] [FAILURE] " . esc_html($error_message) . PHP_EOL;
             $this->cpmwsaveErrorLogs($log_entry);
             return new WP_REST_Response(array('error' => $error_message), 400);
         }
@@ -207,7 +207,7 @@ class CpmwRestApi
             $order->update_status('wc-failed', __('Order has been canceled due to Order Information mismatch', 'cpmw'));
 
             $error_message = __('Order Information mismatch', 'cpmw');
-            $log_entry = "[Order #$order_id] [FAILURE] " . $error_message . PHP_EOL;
+            $log_entry = "[Order #" . esc_html($order_id) . "] [FAILURE] " . esc_html($error_message) . PHP_EOL;
             $this->cpmwsaveErrorLogs($log_entry);
             return new WP_REST_Response(array('error' => $error_message), 400);
         }
@@ -219,7 +219,7 @@ class CpmwRestApi
 
 			$error_message = __( 'Chain ID does not exist', 'cpmwp' );
 
-			$log_entry = "[Order #$order_id] [FAILURE] Amount:-" . $total . $receve_tx_req_data . $error_message . PHP_EOL;
+			$log_entry = "[Order #" . esc_html($order_id) . "] [FAILURE] Amount:-" . esc_html($total) . esc_html($receve_tx_req_data) . esc_html($error_message) . PHP_EOL;
 			$this->cpmwsaveErrorLogs( $log_entry );
 
 			return new WP_REST_Response( array( 'error' => $error_message ), 400 );
@@ -233,7 +233,7 @@ class CpmwRestApi
 
 			$error_message = __( 'Transaction Id doesn\'t exists', 'cpmwp' );
 
-			$log_entry = "[Order #$order_id] [FAILURE] Amount:-" . $total . $receve_tx_req_data . $error_message . PHP_EOL;
+			$log_entry = "[Order #" . esc_html($order_id) . "] [FAILURE] Amount:-" . esc_html($total) . esc_html($receve_tx_req_data) . esc_html($error_message) . PHP_EOL;
 			$this->cpmwsaveErrorLogs( $log_entry );
 
 			return new WP_REST_Response( array( 'error' => $error_message ), 400 );
@@ -244,7 +244,7 @@ class CpmwRestApi
 
 			$error_message = __( 'A same transaction already exists in a previous order', 'cpmwp' );
 
-			$log_entry = "[Order #$order_id] [FAILURE] Amount:-" . $total . $receve_tx_req_data . $error_message . PHP_EOL;
+			$log_entry = "[Order #" . esc_html($order_id) . "] [FAILURE] Amount:-" . esc_html($total) . esc_html($receve_tx_req_data) . esc_html($error_message) . PHP_EOL;
 			$this->cpmwsaveErrorLogs( $log_entry );
 
 			return new WP_REST_Response( array( 'error' => $error_message ), 400 );
@@ -255,7 +255,7 @@ class CpmwRestApi
 
 			$error_message = __( 'Receiver are not same', 'cpmwp' );
 
-			$log_entry = "[Order #$order_id] [FAILURE] Amount:-" . $total . $receve_tx_req_data . $error_message . PHP_EOL;
+			$log_entry = "[Order #" . esc_html($order_id) . "] [FAILURE] Amount:-" . esc_html($total) . esc_html($receve_tx_req_data) . esc_html($error_message) . PHP_EOL;
 			$this->cpmwsaveErrorLogs( $log_entry );
 
 			return new WP_REST_Response( array( 'error' => $error_message ), 400 );	
@@ -266,7 +266,7 @@ class CpmwRestApi
 
 			$error_message = __( 'Transaction ID does not exist on the blockchain', 'cpmwp' );
 
-			$log_entry = "[Order #$order_id] [FAILURE] Amount:-" . $total . $receve_tx_req_data . $error_message . PHP_EOL;
+			$log_entry = "[Order #" . esc_html($order_id) . "] [FAILURE] Amount:-" . esc_html($total) . esc_html($receve_tx_req_data) . esc_html($error_message) . PHP_EOL;
 			$this->cpmwsaveErrorLogs( $log_entry );
 
 			return new WP_REST_Response( array( 'error' => $error_message ), 400 );
@@ -277,7 +277,7 @@ class CpmwRestApi
 
 			$error_message = __( 'Amount does not match', 'cpmwp' );
 
-			$log_entry = "[Order #$order_id] [FAILURE] Amount:-" . $total . $receve_tx_req_data . $error_message . PHP_EOL;
+			$log_entry = "[Order #" . esc_html($order_id) . "] [FAILURE] Amount:-" . esc_html($total) . esc_html($receve_tx_req_data) . esc_html($error_message) . PHP_EOL;
 			$this->cpmwsaveErrorLogs( $log_entry );
 
 			return new WP_REST_Response( array( 'error' => $error_message ), 400 );
@@ -298,7 +298,8 @@ class CpmwRestApi
             if ($trasn_id != 'false') {
                 $link_hash = '';
 
-                $link_hash = '<a href="' . $block_explorer[$selected_network] . 'tx/' . $trasn_id . '" target="_blank">' . $trasn_id . '</a>';
+                $explorer_url = isset($block_explorer[$selected_network]) ? esc_url($block_explorer[$selected_network]) : '';
+                $link_hash = '<a href="' . $explorer_url . 'tx/' . esc_attr($trasn_id) . '" target="_blank">' . esc_html($trasn_id) . '</a>';
 
                 if ($payment_status_d == 'default') {
                     $order->add_meta_data('TransactionId', $trasn_id);
@@ -328,7 +329,7 @@ class CpmwRestApi
             $db = new CPMW_database();
             $transaction['status'] = 'completed';
             $transaction['sender'] = $sender;
-            $transaction['transaction_id'] = !empty($trasn_id) ? $trasn_id : 'false';
+            $transaction['transaction_id'] = !empty($trasn_id) ? sanitize_text_field($trasn_id) : 'false';
             $order->save_meta_data();
             $data = array(
                 'is_paid' => ($order->get_status() == 'on-hold' && !empty($trasn_id)) ? true : $order->is_paid(),
@@ -356,7 +357,7 @@ class CpmwRestApi
         $nonce = isset($_POST['_wpnonce']) ? $_POST['_wpnonce'] : (isset($_SERVER['HTTP_X_WP_NONCE']) ? $_SERVER['HTTP_X_WP_NONCE'] : '');
         if (!wp_verify_nonce($nonce, 'wp_rest')) {
             $error_message = __('Nonce verification failed.', 'cpmw');
-            $log_entry = "[Order #$order_id] [FAILURE] " . $error_message . PHP_EOL;
+            $log_entry = "[Order #" . esc_html($order_id) . "] [FAILURE] " . esc_html($error_message) . PHP_EOL;
             $this->cpmwsaveErrorLogs($log_entry);
             return new WP_REST_Response(array('error' => $error_message), 400);
 
@@ -374,7 +375,7 @@ class CpmwRestApi
             
 			$error_message = __( 'A same transaction already exists in a previous order', 'cpmwp' );
             
-			$log_entry = "[Order #$order_id] [FAILURE] Amount:-" . $error_message . PHP_EOL;
+			$log_entry = "[Order #" . esc_html($order_id) . "] [FAILURE] Amount:-" . esc_html($error_message) . PHP_EOL;
 			$this->cpmwsaveErrorLogs( $log_entry );
             
 			return new WP_REST_Response( array( 'error' => $error_message ), 400 );
@@ -427,7 +428,7 @@ class CpmwRestApi
         if (!empty($tx_db_id) && ( $tx_db_id !== $tx_hash )) {
             $order->update_status('wc-failed', __('Order canceled: Transaction already exists.', 'cpmw'));
             $error_message = __('Order canceled: Transaction already exists..', 'cpmw');
-            $log_entry = "[Order #$order_id] [FAILURE] " . $error_message . PHP_EOL;
+            $log_entry = "[Order #" . esc_html($order_id) . "] [FAILURE] " . esc_html($error_message) . PHP_EOL;
             $this->cpmwsaveErrorLogs($log_entry);
             return new WP_REST_Response(array('error' => $error_message), 400);
         }
@@ -491,7 +492,7 @@ class CpmwRestApi
        if ( ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
            $error_message = __( 'Nonce verification failed.', 'cpmw' );
 
-           $log_entry = " [Order #$order_id] [FAILURE] $error_message" . PHP_EOL;
+           $log_entry = " [Order #" . esc_html($order_id) . "] [FAILURE] " . esc_html($error_message) . PHP_EOL;
            $this->cpmwsaveErrorLogs( $log_entry );
 
            return new WP_REST_Response( array( 'error' => $error_message ), 400 );
@@ -552,7 +553,7 @@ class CpmwRestApi
                )
            );
 
-           $log_entry = " [Order #$order_id] [FAILURE] [Original data]:-" . $original_data . '[Received data]' . $create_tx_req_data . $error_message . PHP_EOL;
+           $log_entry = " [Order #" . esc_html($order_id) . "] [FAILURE] [Original data]:-" . esc_html($original_data) . '[Received data]' . esc_html($create_tx_req_data) . esc_html($error_message) . PHP_EOL;
            $this->cpmwsaveErrorLogs( $log_entry );
 
            return new WP_REST_Response( array( 'error' => $error_message ), 400 );
@@ -580,7 +581,7 @@ class CpmwRestApi
            $transaction['chain_name']        = $networks[ $selected_network ];
            $transaction['status']            = 'awaiting';
            $transaction['sender']            = $sender;
-           $transaction['transaction_id']    = ! empty( $trasn_id ) ? $trasn_id : 'false';
+           $transaction['transaction_id']    = ! empty( $trasn_id ) ? sanitize_text_field($trasn_id) : 'false';
            $db                               = new CPMW_database();
            $db->cpmw_insert_data( $transaction );
 
@@ -611,7 +612,7 @@ class CpmwRestApi
        if ( ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
            $error_message = __( 'Nonce verification failed.', 'cpmw' );
 
-           $log_entry = " [Order #$order_id] [FAILURE] $error_message" . PHP_EOL;
+           $log_entry = " [Order #" . esc_html($order_id) . "] [FAILURE] " . esc_html($error_message) . PHP_EOL;
            $this->cpmwsaveErrorLogs( $log_entry );
 
            return new WP_REST_Response( array( 'error' => $error_message ), 400 );
@@ -655,7 +656,7 @@ class CpmwRestApi
                )
            );
 
-           $log_entry = " [Order #$order_id] [FAILURE] [Original data]:-" . $original_data . '[Received data]' . $create_tx_req_data . $error_message . PHP_EOL;
+           $log_entry = " [Order #" . esc_html($order_id) . "] [FAILURE] [Original data]:-" . esc_html($original_data) . '[Received data]' . esc_html($create_tx_req_data) . esc_html($error_message) . PHP_EOL;
            $this->cpmwsaveErrorLogs( $log_entry );
 
            return new WP_REST_Response( array( 'error' => $error_message ), 400 );

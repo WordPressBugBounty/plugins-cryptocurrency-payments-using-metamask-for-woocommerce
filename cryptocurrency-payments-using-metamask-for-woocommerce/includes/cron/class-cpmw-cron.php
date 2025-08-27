@@ -86,7 +86,7 @@ if ( ! class_exists( 'CPMW_cronjob' ) ) {
             $site_id        = $site_url . '-' . $install_date . '-' . $uni_id;
             $initial_version = get_option('cpmw_initial_save_version');
             $initial_version = is_string($initial_version) ? sanitize_text_field($initial_version) : 'N/A';
-            $plugin_version = defined('CPMW_VERSION') ? CPMW_VERSION : 'N/A';
+            $plugin_version = defined('CPMW_VERSION') ? sanitize_text_field(CPMW_VERSION) : 'N/A';
             $admin_email    = sanitize_email(get_option('admin_email') ?: 'N/A');
             
             $post_data = array(
@@ -139,7 +139,7 @@ if ( ! class_exists( 'CPMW_cronjob' ) ) {
 			if ( is_array( $pending_transactions ) && count( $pending_transactions ) >= 1 ) {
 
 				foreach ( $pending_transactions as $key => $value ) {
-					$pending_orderid = $value->order_id;
+					$pending_orderid = absint($value->order_id);
 					$order_exits     = wc_get_order( $pending_orderid );
 					$order_exits     = isset( $order_exits ) && $order_exits ? true : false;
 
@@ -148,21 +148,33 @@ if ( ! class_exists( 'CPMW_cronjob' ) ) {
 					}
 
 					$pendingorder = new WC_Order( $pending_orderid );
-					$chain_id     = $this->cpmw_chain_id( $value->chain_id );
+					$chain_id     = $this->cpmw_chain_id( sanitize_text_field($value->chain_id) );
 
 					if ( $pendingorder->is_paid() == false && $chain_id ) {
 
 						$amount = $pendingorder->get_meta( 'cpmwp_in_crypto' );
 						$amount = str_replace( ',', '', $amount );
 
-						$receipt = CPMW_API_DATA::verify_transaction_info( $value->transaction_id, esc_html( $value->chain_id ), esc_html( $pending_orderid ), $amount );
+						$receipt = CPMW_API_DATA::verify_transaction_info( 
+							sanitize_text_field($value->transaction_id), 
+							sanitize_text_field($value->chain_id), 
+							$pending_orderid, 
+							floatval($amount)
+						);
 
 						if ( $receipt['tx_status'] == '0x1' && $receipt['tx_amount_verify'] && ! isset( $receipt['tx_already_exists'] ) ) {
 							$block_explorer = $this->cpmw_get_explorer_url();
-							$link_hash      = '<a href="' . $block_explorer[ $value->chain_id ] . 'tx/' . $value->transaction_id . '" target="_blank">' . $value->transaction_id . '</a>';
+							$chain_id_safe = sanitize_text_field($value->chain_id);
+							$transaction_id_safe = sanitize_text_field($value->transaction_id);
+							if (isset($block_explorer[$chain_id_safe])) {
+								$explorer_url = esc_url($block_explorer[$chain_id_safe]);
+								$link_hash = '<a href="' . $explorer_url . 'tx/' . esc_attr($transaction_id_safe) . '" target="_blank">' . esc_html($transaction_id_safe) . '</a>';
+							} else {
+								$link_hash = esc_html($transaction_id_safe);
+							}
 							$transection    = __( 'Payment Received via Pay with MetaMask - Transaction ID:', 'cpmwp' ) . $link_hash;
 							$pendingorder->add_order_note( $transection );
-							$pendingorder->payment_complete( $value->transaction_id );
+							$pendingorder->payment_complete( $transaction_id_safe );
 							$db->update_fields_value( $pending_orderid, 'status', 'completed' );
 						}
 					}

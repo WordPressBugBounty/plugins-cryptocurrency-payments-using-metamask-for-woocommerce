@@ -33,17 +33,26 @@ class Cpmw_metamask_list extends WP_List_Table
         $this->_column_headers = array($columns, $hidden, $sortable);
         $query = 'SELECT * FROM ' . $wpdb->base_prefix . 'cpmw_transaction';
         $user_search_keyword = isset($_REQUEST['s']) ? wp_unslash(trim($_REQUEST['s'])) : '';
-        $status= isset($_REQUEST['payment_status']) ? wp_unslash(trim($_REQUEST['payment_status'])) : '';
-        if (isset($user_search_keyword) && !empty($user_search_keyword)) {
-            $query .= ' where ( order_id LIKE "%' . $user_search_keyword . '%" OR chain_name LIKE "%' . $user_search_keyword . '%" OR selected_currency LIKE "%' . $user_search_keyword . '%" OR transaction_id LIKE "%' . $user_search_keyword . '%") ';
-        } elseif (isset($status) && !empty($status)) {
-            $query .= ' where ( status LIKE "' . $status . '" ) ';
+        $status_raw = isset($_REQUEST['payment_status']) ? wp_unslash(trim($_REQUEST['payment_status'])) : '';
+        $allowed_statuses = array('awaiting', 'completed', 'unsuccessful');
+        $status = in_array($status_raw, $allowed_statuses, true) ? $status_raw : '';
+        if ($user_search_keyword !== '') {
+            $search_like = '%' . $wpdb->esc_like($user_search_keyword) . '%';
+            $query = $wpdb->prepare($query . ' WHERE ( order_id LIKE %s OR chain_name LIKE %s OR selected_currency LIKE %s OR transaction_id LIKE %s )', 
+                $search_like, $search_like, $search_like, $search_like);
+        } elseif ($status !== '') {
+            $query = $wpdb->prepare($query . ' WHERE status = %s', $status);
 
         }
-        // Ordering parameters
-        $orderby = !empty($_REQUEST["orderby"]) ? esc_sql($_REQUEST["orderby"]) : 'last_updated';
-        $order = !empty($_REQUEST["order"]) ? esc_sql($_REQUEST["order"]) : 'DESC';
-        if (!empty($orderby) & !empty($order)) {
+        // Ordering parameters (whitelist columns and direction to prevent SQL injection)
+        $allowed_cols = array('order_id', 'chain_name', 'selected_currency', 'crypto_price', 'order_price', 'last_updated', 'status', 'transaction_id', 'sender');
+        $req_orderby  = isset($_REQUEST['orderby']) ? wp_unslash($_REQUEST['orderby']) : '';
+        $req_order    = isset($_REQUEST['order']) ? wp_unslash($_REQUEST['order']) : '';
+
+        $orderby = in_array($req_orderby, $allowed_cols, true) ? $req_orderby : 'last_updated';
+        $order   = (strtoupper($req_order) === 'ASC') ? 'ASC' : 'DESC';
+
+        if (!empty($orderby) && !empty($order)) {
             $query .= ' ORDER BY ' . $orderby . ' ' . $order;
         }
 
@@ -54,11 +63,8 @@ class Cpmw_metamask_list extends WP_List_Table
             $perpage = 10;
         }
 
-        $paged = !empty($_REQUEST["paged"]) ? esc_sql($_REQUEST["paged"]) : false;
-
-        if (empty($paged) || !is_numeric($paged) || $paged <= 0) {
-            $paged = 1;
-        }
+        $paged = isset($_REQUEST['paged']) ? absint($_REQUEST['paged']) : 1;
+        if ($paged <= 0) { $paged = 1; }
         $totalpages = ceil($totalitems / $perpage);
 
         if (!empty($paged) && !empty($perpage)) {
@@ -86,43 +92,44 @@ class Cpmw_metamask_list extends WP_List_Table
         switch ($column_name) {
 
             case 'order_id':
-                return '<a href="' . admin_url() . 'post.php?post=' . $item->order_id . '&action=edit">#' . $item->order_id . ' ' . $item->user_name . '</a>';
+                return '<a href="' . esc_url( admin_url( 'post.php?post=' . absint( $item->order_id ) . '&action=edit' ) ) . '">#' . esc_html( $item->order_id ) . ' ' . esc_html( $item->user_name ) . '</a>';
 
             case 'transaction_id':
                 if ($item->transaction_id != "false") {
+                    $base = '';
                     if ($item->chain_id == '0x61') {
-                        return '<a href="https://testnet.bscscan.com/tx/' . $item->transaction_id . '" target="_blank">' . $item->transaction_id . '</a>';
+                        $base = 'https://testnet.bscscan.com/tx/';
                     } elseif ($item->chain_id == '0x38') {
-                        return '<a href="https://bscscan.com/tx/' . $item->transaction_id . '" target="_blank">' . $item->transaction_id . '</a>';
+                        $base = 'https://bscscan.com/tx/';
                     } elseif ($item->chain_id == '0x1') {
-                        return '<a href="https://etherscan.io/tx/' . $item->transaction_id . '" target="_blank">' . $item->transaction_id . '</a>';
-
+                        $base = 'https://etherscan.io/tx/';
                     } elseif ($item->chain_id == '0x5') {
-                        return '<a href="https://goerli.etherscan.io/tx/' . $item->transaction_id . '" target="_blank">' . $item->transaction_id . '</a>';
-
+                        $base = 'https://goerli.etherscan.io/tx/';
                     } elseif ($item->chain_id == '0xaa36a7') {
-                        return '<a href="https://sepolia.etherscan.io/tx/' . $item->transaction_id . '" target="_blank">' . $item->transaction_id . '</a>';
-
+                        $base = 'https://sepolia.etherscan.io/tx/';
                     }
 
-                }                
-                return ($order) ? $order->get_status() : false;
+                    if ($base) {
+                        return '<a href="' . esc_url( $base . $item->transaction_id ) . '" target="_blank">' . esc_html( $item->transaction_id ) . '</a>';
+                    }
+                }
+                return ($order) ? esc_html( $order->get_status() ) : false;
                 break;
 
             case 'sender':
-                return $item->sender;
+                return esc_html( $item->sender );
 
             case 'chain_name':
-                return $item->chain_name;
+                return esc_html( $item->chain_name );
 
             case 'selected_currency':
-                return $item->selected_currency;
+                return esc_html( $item->selected_currency );
 
             case 'crypto_price':
-                return $item->crypto_price;
+                return esc_html( $item->crypto_price );
 
             case 'order_price':
-                return $item->order_price;
+                return esc_html( $item->order_price );
 
             case 'status':        
                 // if ($order == false) {
@@ -146,23 +153,23 @@ class Cpmw_metamask_list extends WP_List_Table
                     return '<span class="order-status status-deleted tips"><span>Deleted</span></span>';
                 }
                 if ($order->get_status() == "canceled") {
-                    return '<span class="order-status status-cancelled tips"><span>' . ucfirst($order->get_status()) . '</span></span>';
+                    return '<span class="order-status status-cancelled tips"><span>' . esc_html( ucfirst( $order->get_status() ) ) . '</span></span>';
                 } elseif ($order->get_status() == "completed") {
-                    return '<span class="order-status status-completed tips"><span>' . ucfirst($order->get_status()) . '</span></span>';
+                    return '<span class="order-status status-completed tips"><span>' . esc_html( ucfirst( $order->get_status() ) ) . '</span></span>';
                 } elseif ($order->get_status() == "processing") {
-                    return '<span class="order-status status-processing tips"><span>' . ucfirst($order->get_status()) . '</span></span>';
+                    return '<span class="order-status status-processing tips"><span>' . esc_html( ucfirst( $order->get_status() ) ) . '</span></span>';
                 } elseif ($order->get_status() == "on-hold") {
-                    return '<span class="order-status status-on-hold tips"><span>' . ucfirst($order->get_status()) . '</span></span>';
+                    return '<span class="order-status status-on-hold tips"><span>' . esc_html( ucfirst( $order->get_status() ) ) . '</span></span>';
                 } else {
-                    return '<span class="order-status status-cancelled tips"><span>' . ucfirst($order->get_status()) . '</span></span>';
+                    return '<span class="order-status status-cancelled tips"><span>' . esc_html( ucfirst( $order->get_status() ) ) . '</span></span>';
                 }
             case 'last_updated':
                 if ($order == false) {
-                    return $item->last_updated;
+                    return esc_html( $item->last_updated );
                 }
                 return $this->timeAgo($order);
             default:
-                return print_r($item, true); //Show the whole array for troubleshooting purposes
+                return esc_html( print_r( $item, true ) ); //Show the whole array for troubleshooting purposes
         }
     }
 

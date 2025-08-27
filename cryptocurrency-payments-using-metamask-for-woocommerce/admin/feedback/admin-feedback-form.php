@@ -72,12 +72,12 @@ class Cpmw_feedback{
 		<div id="cool-plugins-deactivate-feedback-dialog-wrapper" class="hide-feedback-popup">
 			            
             <div class="cool-plugins-deactivation-response">
-            <div id="cool-plugins-deactivate-feedback-dialog-header">
-				<span id="cool-plugins-feedback-form-title"><?php echo __( 'Quick Feedback', 'cool-plugins' ); ?></span>
+			<div id="cool-plugins-deactivate-feedback-dialog-header">
+				<span id="cool-plugins-feedback-form-title"><?php echo esc_html__( 'Quick Feedback', 'cool-plugins' ); ?></span>
             </div>
             <div id="cool-plugins-loader-wrapper">
 				<div class="cool-plugins-loader-container">
-                    <img class="cool-plugins-preloader" src="<?php echo $this->plugin_url; ?>admin/feedback/images/cool-plugins-preloader.gif">
+					<img class="cool-plugins-preloader" alt="<?php echo esc_attr__( 'Loading…', 'cool-plugins' ); ?>" src="<?php echo esc_url( $this->plugin_url . 'admin/feedback/images/cool-plugins-preloader.gif' ); ?>">
                 </div>
             </div>
             <div id="cool-plugins-form-wrapper" class="cool-plugins-form-wrapper-cls">
@@ -86,7 +86,7 @@ class Cpmw_feedback{
 				wp_nonce_field( '_cool-plugins_deactivate_feedback_nonce' );
 				?>
 				<input type="hidden" name="action" value="cool-plugins_deactivate_feedback" />
-                <div id="cool-plugins-deactivate-feedback-dialog-form-caption"><?php echo __( 'If you have a moment, please share why you are deactivating this plugin.', 'cool-plugins' ); ?></div>
+				<div id="cool-plugins-deactivate-feedback-dialog-form-caption"><?php echo esc_html__( 'If you have a moment, please share why you are deactivating this plugin.', 'cool-plugins' ); ?></div>
 				<div id="cool-plugins-deactivate-feedback-dialog-form-body">
 					<?php foreach ( $deactivate_reasons as $reason_key => $reason ) : ?>
 						<div class="cool-plugins-deactivate-feedback-dialog-input-wrapper">
@@ -100,11 +100,11 @@ class Cpmw_feedback{
 							<?php endif; ?>
 						</div>
                     <?php endforeach; ?>
-                    <input class="cool-plugins-GDPR-data-notice" id="cool-plugins-GDPR-data-notice" type="checkbox"><label for="cool-plugins-GDPR-data-notice"><?php echo __('I agree to share anonymous usage data and basic site details (such as server, PHP, and WordPress versions) to support Cryptocurrency Widgets improvement efforts. Additionally, I allow Cool Plugins to store all information provided through this form and to respond to my inquiry.','cool-plugins');?></label>
+					<input class="cool-plugins-GDPR-data-notice" id="cool-plugins-GDPR-data-notice" type="checkbox" name="gdpr_consent" value="yes"><label for="cool-plugins-GDPR-data-notice"><?php echo esc_html__( 'I agree to share anonymous usage data and basic site details (such as server, PHP, and WordPress versions) to support Cryptocurrency Widgets improvement efforts. Additionally, I allow Cool Plugins to store all information provided through this form and to respond to my inquiry.', 'cool-plugins' ); ?></label>
                 </div>
                 <div class="cool-plugin-popup-button-wrapper">
-                    <a class="cool-plugins-button button-deactivate" id="cool-plugin-submitNdeactivate">Submit and Deactivate</a>
-                    <a class="cool-plugins-button" id="cool-plugin-skipNdeactivate">Skip and Deactivate</a>
+					<a class="cool-plugins-button button-deactivate" id="cool-plugin-submitNdeactivate"><?php echo esc_html__( 'Submit and Deactivate', 'cool-plugins' ); ?></a>
+					<a class="cool-plugins-button" id="cool-plugin-skipNdeactivate"><?php echo esc_html__( 'Skip and Deactivate', 'cool-plugins' ); ?></a>
                 </div>
             </form>
             </div>
@@ -179,7 +179,9 @@ class Cpmw_feedback{
         if ( ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( $_POST['_wpnonce'], '_cool-plugins_deactivate_feedback_nonce' ) ) {
 			wp_send_json_error();
 		}else{
-            $reason = filter_var($_POST['reason'], FILTER_SANITIZE_STRING);
+            // Sanitize input using WordPress functions instead of deprecated FILTER_SANITIZE_STRING
+            $reason = isset($_POST['reason']) ? sanitize_text_field($_POST['reason']) : '';
+            
             $deactivate_reasons = [
                 'didnt_work_as_expected' => [
                     'title' => __( 'The plugin didn\'t work as expected', 'cool-plugins' ),

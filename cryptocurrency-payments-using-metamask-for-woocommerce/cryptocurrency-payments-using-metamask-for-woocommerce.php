@@ -3,8 +3,8 @@
  * Plugin Name:Cryptocurrency Payments Using MetaMask For WooCommerce
  * Description:Use MataMask cryptocurrency payment gateway for WooCommerce store and let customers pay with USDT, ETH, BNB or BUSD.
  * Author:Cool Plugins
- * Author URI:https://coolplugins.net/
- * Version: 1.6.6
+ * Author URI:https://coolplugins.net/?utm_source=cpmw_plugin&utm_medium=inside&utm_campaign=author_page&utm_content=plugins_list
+ * Version: 1.6.7
  * License: GPL2
  * Text Domain: cpmw
  * Domain Path: /languages
@@ -32,12 +32,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-define( 'CPMW_VERSION', '1.6.6' );
+define( 'CPMW_VERSION', '1.6.7' );
 define( 'CPMW_FILE', __FILE__ );
 define( 'CPMW_PATH', plugin_dir_path( CPMW_FILE ) );
 define( 'CPMW_URL', plugin_dir_url( CPMW_FILE ) );
 
-define( 'CPMW_BUY_PRO', 'https://paywithcryptocurrency.net/wordpress-plugin/pay-with-metamask-for-woocommerce-pro/?utm_source=cpmw_plugin&utm_medium=inside&utm_campaign=get-pro&utm_content=settings' );
+define( 'CPMW_BUY_PRO', 'https://paywithcryptocurrency.net/wordpress-plugin/pay-with-metamask-for-woocommerce-pro/?utm_source=cpmw_plugin&utm_medium=inside&utm_campaign=get_pro&utm_content=settings' );
 
 if ( ! defined( 'CPMW_DEMO_URL' ) ) {
 	define( 'CPMW_DEMO_URL', 'https://paywithcryptocurrency.net/cart/?add-to-cart=2996&utm_source=cpmw_plugin&utm_medium=inside&utm_campaign=demo&utm_content=check-demo' );
@@ -140,7 +140,7 @@ if ( ! class_exists( 'cpmw_metamask_pay' ) ) {
 		// custom links for add widgets in all plugins section
 		public function cpmw_add_widgets_action_links( $links ) {
 			$cpmw_settings = admin_url() . 'admin.php?page=cpmw-metamask-settings';
-			$links[]       = '<a  style="font-weight:bold" href="' . esc_url( $cpmw_settings ) . '" target="_self">' . __( 'Settings', 'cpmw' ) . '</a>';
+			$links[]       = '<a  style="font-weight:bold" href="' . esc_url( $cpmw_settings ) . '" target="_self">' . esc_html__( 'Settings', 'cpmw' ) . '</a>';
 			return $links;
 
 		}
@@ -164,6 +164,7 @@ if ( ! class_exists( 'cpmw_metamask_pay' ) ) {
 		/*** Load required files */
 		public function cpmw_load_files() {
 			if ( ! class_exists( 'WooCommerce' ) ) {
+				deactivate_plugins( plugin_basename( CPMW_FILE ) );
 				add_action( 'admin_notices', array( $this, 'cpmw_missing_wc_notice' ) );
 				return;
 			}
@@ -232,9 +233,9 @@ if ( ! class_exists( 'cpmw_metamask_pay' ) ) {
 		}
 
 		public function cpmw_settings_page( $links ) {
-            $links[] = '<a style="font-weight:bold" href="' . esc_url( 'https://cryptocurrencyplugins.com/wordpress-plugin/pay-with-metamask-for-woocommerce-pro/?utm_source=cpmw_plugin&utm_medium=inside&utm_campaign=get_pro&utm_content=dashboard' ) . '">' . __( 'Buy Pro', 'cpmw' ) . '</a>';
-            return $links;
-        }
+			$links[] = '<a style="font-weight:bold" href="' . esc_url( 'https://cryptocurrencyplugins.com/wordpress-plugin/pay-with-metamask-for-woocommerce-pro/?utm_source=cpmw_plugin&utm_medium=inside&utm_campaign=get_pro&utm_content=plugins_list' ) . '">' . esc_html__( 'Buy Pro', 'cpmw' ) . '</a>';
+			return $links;
+		}
 		
 		public function cpmw_do_activation_redirect()
         {
@@ -259,17 +260,19 @@ if ( ! class_exists( 'cpmw_metamask_pay' ) ) {
 		public function cpmw_missing_wc_notice() {
 			$installurl = admin_url() . 'plugin-install.php?tab=plugin-information&plugin=woocommerce';
 			if ( file_exists( WP_PLUGIN_DIR . '/woocommerce/woocommerce.php' ) ) {
-				echo '<div class="error"><p>' . __( 'Cryptocurrency Payments Using MetaMask For WooCommerce requires WooCommerce to be active', 'cpmw' ) . '</div>';
+				echo '<div class="error"><p>' . esc_html__( 'Cryptocurrency Payments Using MetaMask For WooCommerce requires WooCommerce to be active', 'cpmw' ) . '</p></div>';
 			} else {
 				wp_enqueue_script( 'cpmw-custom-notice', CPMW_URL . 'assets/js/cpmw-admin-notice.js', array( 'jquery' ), CPMW_VERSION, true );
-				echo '<div class="error"><p>' . sprintf( __( 'Cryptocurrency Payments Using MetaMask For WooCommerce requires WooCommerce to be installed and active. Click here to %s WooCommerce plugin.', 'cpmw' ), '<button class="cpmw_modal-toggle" >' . __( 'Install', 'cpmw' ) . ' </button>' ) . '</p></div>';
+				$message      = esc_html__( 'Cryptocurrency Payments Using MetaMask For WooCommerce requires WooCommerce to be installed and active. Click the button below to install the WooCommerce plugin.', 'cpmw' );
+				$button_label = esc_html__( 'Install', 'cpmw' );
+				echo '<div class="error"><p>' . $message . ' <button class="cpmw_modal-toggle">' . $button_label . '</button></p></div>';
 				?>
 				<div class="cpmw_modal">
 					<div class="cpmw_modal-overlay cpmw_modal-toggle"></div>
 					<div class="cpmw_modal-wrapper cpmw_modal-transition">
 					<div class="cpmw_modal-header">
 						<button class="cpmw_modal-close cpmw_modal-toggle"><span class="dashicons dashicons-dismiss"></span></button>
-						<h2 class="cpmw_modal-heading"><?php _e( 'Install WooCommerce', 'cpmw' ); ?></h2>
+						<h2 class="cpmw_modal-heading"><?php esc_html_e( 'Install WooCommerce', 'cpmw' ); ?></h2>
 					</div>
 					<div class="cpmw_modal-body">
 						<div class="cpmw_modal-content">
